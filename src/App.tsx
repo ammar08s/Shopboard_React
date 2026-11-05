@@ -1,11 +1,9 @@
-import './App.css'
-let number = 0
+import './App.css';
+
 function App() {
-  return (
-    <>
-      
-    </>
-  )
+  const name = 'ShopBoard';
+
+  return <h1>{name}</h1>;
 }
 
-export default App
+export default App;
