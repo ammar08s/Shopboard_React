@@ -1,4 +1,4 @@
-import { getJson } from '../../shared/api/apiClient.ts';
+import { getJson } from '../../../../shared/api/apiClient.ts';
 import { parseProducts } from './products.data.ts';
 import type { Product } from './products.types.ts';
 

@@ -1,0 +1,30 @@
+.products-message {
+  text-align: center;
+  padding: 80px 24px;
+  min-height: 300px;
+}
+.products-message h2 {
+  font:
+    500 25px Manrope,
+    sans-serif;
+  letter-spacing: -0.7px;
+}
+.products-message p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.products-button {
+  border: 0;
+  border-radius: 7px;
+  background: var(--green);
+  color: #fff;
+  padding: 12px 20px;
+  font-size: 13px;
+  margin-top: 8px;
+}
+@media (max-width: 650px) {
+  .products-message {
+    padding: 55px 12px;
+  }
+}

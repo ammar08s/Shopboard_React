@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
-import { formatPrice } from './products.logic.ts';
-import type { Product } from './products.types.ts';
+import { formatPrice } from '../../modules/pricing/products.price.ts';
+import type { Product } from '../../modules/catalog/products.types.ts';
+
+import './ProductCard.css';
 
 interface Props {
   product: Product;

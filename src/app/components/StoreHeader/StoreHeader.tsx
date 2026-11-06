@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
 
+import './StoreHeader.css';
+
 interface Props {
   children?: never;
 }

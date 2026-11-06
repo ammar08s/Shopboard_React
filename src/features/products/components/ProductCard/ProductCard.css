@@ -1,0 +1,131 @@
+.products-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.products-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px #253a2410;
+}
+.products-art {
+  height: 190px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: #e8e4d9;
+  color: #837860;
+  overflow: hidden;
+}
+.products-art-shoes {
+  background: #e2e8df;
+  color: #788873;
+}
+.products-art-accessories {
+  background: #eee0d8;
+  color: #aa8d7d;
+}
+.products-art::before {
+  content: '';
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border: 1px solid currentColor;
+  opacity: 0.25;
+  border-radius: 50%;
+  transform: translate(25px, 12px);
+}
+.products-art::after {
+  content: '';
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border: 1px solid currentColor;
+  opacity: 0.15;
+  border-radius: 50%;
+  transform: translate(-25px, -12px);
+}
+.products-monogram {
+  font:
+    500 80px Georgia,
+    serif;
+  opacity: 0.7;
+  z-index: 1;
+}
+.products-art-word {
+  position: absolute;
+  top: 15px;
+  left: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 8px;
+}
+.products-art-number {
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+.products-card-body {
+  padding: 17px 16px 19px;
+}
+.products-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 9px;
+  color: var(--muted);
+  margin-bottom: 11px;
+}
+.products-stock {
+  color: var(--green);
+}
+.products-stock::before {
+  content: '●';
+  font-size: 7px;
+  margin-right: 4px;
+}
+.products-stock-out {
+  color: #977461;
+}
+.products-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 13px;
+}
+.products-price {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.products-price span {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 3px;
+}
+@media (min-width: 1300px) {
+  .products-art {
+    height: 220px;
+  }
+}
+@media (max-width: 650px) {
+  .products-art {
+    height: 155px;
+  }
+  .products-card-body {
+    padding: 12px;
+  }
+  .products-card-meta {
+    flex-wrap: wrap;
+    font-size: 9px;
+  }
+  .products-card h3 {
+    font-size: 13px;
+  }
+}

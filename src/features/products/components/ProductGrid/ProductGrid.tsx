@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
-import { ProductCard } from './ProductCard.tsx';
-import type { Product } from './products.types.ts';
+import { ProductCard } from '../ProductCard/ProductCard.tsx';
+import type { Product } from '../../modules/catalog/products.types.ts';
+
+import './ProductGrid.css';
 
 interface Props {
   products: Product[];

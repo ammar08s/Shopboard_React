@@ -12,11 +12,15 @@ These instructions apply throughout this repository. Keep this document updated 
 ## Feature-based architecture
 
 - Organize code around features, not project-wide technical categories.
-- Separate a feature's UI, state, business logic, and data access when those responsibilities exist.
-- Start with focused files. Introduce subfolders when size or complexity makes them useful.
-- Do not create empty files, folders, or abstractions to satisfy a template. A simple feature may need only a UI file.
-- Keep feature-specific types, styles, and tests with that feature.
+- **Each feature separates UI into `components/` and non-UI code into `modules/`. Each component owns a folder containing its component, styles, and UI tests when needed. Modules group state/hooks, business logic, API access, validation, types, and tests by responsibility. Components may import modules; modules must never import components. Split by responsibility, without empty folders or trivial wrapper components.**
+- Use `components/<ComponentName>/<ComponentName>.tsx` and colocate that component's CSS in the same folder. Keep exactly one component per file.
+- Use descriptive responsibility folders such as `modules/catalog/`, `modules/filtering/`, and `modules/pricing/`; do not recreate a flat collection of unrelated logic files inside `modules/`.
+- Keep module tests beside the code they exercise. Name hooks with a `use` prefix, such as `useProducts.ts` or `useProductFilters.ts`.
+- Keep feature-specific types with the module that owns their domain. UI-only types belong with their component.
+- Keep only genuinely shared feature UI rules in clearly named stylesheets under `components/`; component-specific selectors and responsive rules belong beside their component.
+- Do not create empty files, folders, barrel files, or abstractions to satisfy the structure. Create only the parts a feature actually needs.
 - Use `src/app/` for application setup, composition, providers, and coordination between features.
+- Put the root component at `src/app/App.tsx` and application UI in `src/app/components/<ComponentName>/`, with colocated styles. Keep `src/main.tsx` focused on bootstrapping.
 - Use `src/shared/` for reusable, feature-independent code and styles. Do not create one large shared file.
 - Features may import shared code. Shared code must never import feature or application code.
 - Features must not import directly from other features. Coordinate them through the application layer and explicit props or callbacks.
@@ -28,23 +32,41 @@ Illustrative structure; create only the parts actually needed:
 src/
   app/
     App.tsx
+    App.css
+    components/
+      StoreHeader/
+        StoreHeader.tsx
+        StoreHeader.css
   features/
     products/
-      Products.tsx
-      products.css
-      products.state.ts
-      products.logic.ts
-      products.api.ts
-      products.types.ts
+      components/
+        Products/
+          Products.tsx
+        ProductCard/
+          ProductCard.tsx
+          ProductCard.css
+      modules/
+        catalog/
+          products.api.ts
+          products.data.ts
+          products.data.test.ts
+          products.types.ts
+          useProducts.ts
+        filtering/
+          products.filters.ts
+          products.filters.test.ts
+          products.filters.types.ts
+          useProductFilters.ts
   shared/
     api/
       apiClient.ts
-    ui/
     styles/
+      global.css
+      typography.css
   main.tsx
 ```
 
-`products.api.ts` is the feature's data access file. Other data files, such as fixtures or mapping utilities, belong beside it when needed.
+`modules/catalog/products.api.ts` is the products feature's data access file. Its response validation, domain model, and request hook belong in the same catalog module. Filtering and pricing have their own focused modules. Import files directly rather than through re-export barrels.
 
 ## Clean code
 
@@ -116,7 +138,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 ## API client and data access
 
 - Centralize base URL configuration, request execution, HTTP error handling, and response parsing in `shared/api/apiClient.ts`.
-- Put feature endpoints in feature API files such as `products.api.ts`, using the shared client.
+- Put feature endpoints in the owning module's API file, such as `features/products/modules/catalog/products.api.ts`, using the shared client.
 - UI components must not call `fetch` directly or contain endpoint URLs.
 - Expose clearly named operations such as `getProducts`, `createProduct`, `updateProduct`, and `deleteProduct`, with typed inputs and outputs.
 - Validate response data at the data boundary and map backend models to frontend models when necessary.
@@ -130,6 +152,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 ## CSS and accessibility
 
 - Keep feature CSS beside the UI it styles.
+- Use mobile-first responsive CSS
 - Use descriptive, feature-prefixed class names to reduce collisions with plain CSS.
 - Keep global resets, base typography, and reusable design variables in `shared/styles/`.
 - Use CSS variables for repeated design values such as colors and spacing.

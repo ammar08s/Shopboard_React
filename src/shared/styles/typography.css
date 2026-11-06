@@ -1,0 +1,7 @@
+.ui-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--green);
+  margin-bottom: 20px;
+}

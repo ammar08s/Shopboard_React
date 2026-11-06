@@ -1,0 +1,18 @@
+.products-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 40px;
+  padding-top: 28px;
+}
+@media (max-width: 1050px) {
+  .products-layout {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 25px;
+  }
+}
+@media (max-width: 650px) {
+  .products-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

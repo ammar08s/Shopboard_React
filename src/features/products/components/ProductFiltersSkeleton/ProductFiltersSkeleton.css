@@ -1,0 +1,90 @@
+.products-filters-skeleton {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  column-gap: 20px;
+}
+
+.products-filters-skeleton-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  grid-column: 1 / -1;
+  height: 25px;
+  margin-bottom: 16px;
+}
+
+.products-filters-skeleton-heading-label {
+  width: 125px;
+  height: 16px;
+}
+
+.products-filters-skeleton-reset {
+  width: 30px;
+  height: 11px;
+}
+
+.products-filters-skeleton-search-label {
+  grid-column: 1 / -1;
+  width: 100px;
+  height: 13px;
+  margin-bottom: 9px;
+}
+
+.products-filters-skeleton-search {
+  grid-column: 1 / -1;
+  height: 43px;
+  border-radius: 7px;
+}
+
+.products-filters-skeleton-group {
+  min-width: 0;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.products-filters-skeleton-legend {
+  width: 65px;
+  height: 13px;
+  margin-bottom: 12px;
+}
+
+.products-filters-skeleton-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.products-filters-skeleton-radio,
+.products-filters-skeleton-checkbox {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.products-filters-skeleton-radio {
+  border-radius: 50%;
+}
+
+.products-filters-skeleton-option-label {
+  width: 85px;
+  max-width: 70%;
+  height: 12px;
+}
+
+@media (min-width: 651px) {
+  .products-filters-skeleton {
+    display: block;
+  }
+
+  .products-filters-skeleton-heading {
+    margin-bottom: 26px;
+  }
+
+  .products-filters-skeleton-group {
+    margin-top: 24px;
+  }
+}
