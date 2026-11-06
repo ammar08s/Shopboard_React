@@ -1,5 +1,5 @@
 import type { ChangeEvent, ReactElement } from 'react';
-import type { SortOrder } from '../../modules/filtering/products.filters.types.ts';
+import type { SortOrder } from '../../../modules/filtering/products.filters.types.ts';
 import './ProductToolbar.css';
 
 interface Props {

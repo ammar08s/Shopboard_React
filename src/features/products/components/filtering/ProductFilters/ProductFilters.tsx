@@ -1,5 +1,5 @@
 import type { ChangeEvent, ReactElement } from 'react';
-import type { ProductFilters as Filters } from '../../modules/filtering/products.filters.types.ts';
+import type { ProductFilters as Filters } from '../../../modules/filtering/products.filters.types.ts';
 
 import './ProductFilters.css';
 

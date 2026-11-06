@@ -33,6 +33,7 @@
   color: inherit;
 }
 .products-filters fieldset {
+  min-width: 0;
   margin: 24px 0 0;
   padding: 20px 0 0;
   border: 0;
@@ -53,9 +54,14 @@
   color: #555e56;
 }
 .products-category input {
+  flex-shrink: 0;
   margin: 0;
   width: 14px;
   height: 14px;
+}
+.products-category span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .products-sidebar-note {
   margin-top: 40px;

@@ -1,23 +1,30 @@
 import type { ReactElement } from 'react';
-import { useProducts } from '../../modules/catalog/useProducts.ts';
-import { ProductCatalog } from '../ProductCatalog/ProductCatalog.tsx';
-import { ProductError } from '../ProductError/ProductError.tsx';
-import { ProductLoading } from '../ProductLoading/ProductLoading.tsx';
+import type { CatalogState } from '../../modules/catalog/useProducts.ts';
+import type { Product } from '../../modules/catalog/products.types.ts';
+import { ProductCatalog } from '../catalog/ProductCatalog/ProductCatalog.tsx';
+import { ProductError } from '../feedback/ProductError/ProductError.tsx';
+import { ProductLoading } from '../loading/ProductLoading/ProductLoading.tsx';
 
 interface Props {
-  children?: never;
+  state: CatalogState;
+  products: Product[];
+  onRetry: () => void;
+  onAddToCart: (product: Product) => void;
 }
 
 /**
- * Connects catalog request state to the appropriate UI.
- * @param props - No configurable inputs.
+ * Connects application-owned catalog state to browsing and request feedback.
+ * @param props - Request state, merged products, retry, and add-to-cart actions.
  * @returns Loading feedback, retryable error feedback, or the loaded catalog.
  */
-export function Products(_props: Props): ReactElement {
-  const { state, retry } = useProducts();
-
+export function Products({ state, products, onRetry, onAddToCart }: Props): ReactElement {
   if (state.status === 'loading') return <ProductLoading />;
-  if (state.status === 'error') return <ProductError message={state.message} onRetry={retry} />;
-
-  return <ProductCatalog products={state.products} />;
+  return (
+    <>
+      {state.status === 'error' ? <ProductError message={state.message} onRetry={onRetry} /> : null}
+      {state.status === 'success' || products.length > 0 ? (
+        <ProductCatalog products={products} onAddToCart={onAddToCart} />
+      ) : null}
+    </>
+  );
 }

@@ -8,7 +8,7 @@
 }
 .store-shell {
   max-width: 1440px;
-  padding: 0 64px;
+  padding: 0 20px;
   margin: auto;
 }
 .store-collection-heading {
@@ -30,6 +30,7 @@
   color: var(--green);
 }
 .store-collection-heading > span {
+  display: none;
   font-size: 10px;
   letter-spacing: 0.13em;
   color: var(--muted);
@@ -44,16 +45,16 @@
 .store-skip:focus {
   top: 0;
 }
-@media (max-width: 900px) {
+@media (min-width: 600px) {
   .store-shell {
     padding: 0 28px;
   }
-}
-@media (max-width: 600px) {
-  .store-shell {
-    padding: 0 20px;
-  }
   .store-collection-heading > span {
-    display: none;
+    display: inline;
+  }
+}
+@media (min-width: 1000px) {
+  .store-shell {
+    padding: 0 64px;
   }
 }

@@ -13,11 +13,11 @@ These instructions apply throughout this repository. Keep this document updated 
 
 - Organize code around features, not project-wide technical categories.
 - **Each feature separates UI into `components/` and non-UI code into `modules/`. Each component owns a folder containing its component, styles, and UI tests when needed. Modules group state/hooks, business logic, API access, validation, types, and tests by responsibility. Components may import modules; modules must never import components. Split by responsibility, without empty folders or trivial wrapper components.**
-- Use `components/<ComponentName>/<ComponentName>.tsx` and colocate that component's CSS in the same folder. Keep exactly one component per file.
+- Use `components/<ComponentName>/<ComponentName>.tsx` for feature entry points and small component collections. When a feature's UI grows, group related component folders by responsibility using `components/<responsibility>/<ComponentName>/<ComponentName>.tsx`, such as `catalog/`, `filtering/`, `loading/`, and `feedback/`. Colocate each component's CSS in its own folder. Keep exactly one component per file.
 - Use descriptive responsibility folders such as `modules/catalog/`, `modules/filtering/`, and `modules/pricing/`; do not recreate a flat collection of unrelated logic files inside `modules/`.
 - Keep module tests beside the code they exercise. Name hooks with a `use` prefix, such as `useProducts.ts` or `useProductFilters.ts`.
 - Keep feature-specific types with the module that owns their domain. UI-only types belong with their component.
-- Keep only genuinely shared feature UI rules in clearly named stylesheets under `components/`; component-specific selectors and responsive rules belong beside their component.
+- Keep only genuinely shared feature UI rules in clearly named stylesheets under the narrowest owning `components/` group, such as `components/loading/productSkeleton.css`; component-specific selectors and responsive rules belong beside their component.
 - Do not create empty files, folders, barrel files, or abstractions to satisfy the structure. Create only the parts a feature actually needs.
 - Use `src/app/` for application setup, composition, providers, and coordination between features.
 - Put the root component at `src/app/App.tsx` and application UI in `src/app/components/<ComponentName>/`, with colocated styles. Keep `src/main.tsx` focused on bootstrapping.
@@ -42,9 +42,22 @@ src/
       components/
         Products/
           Products.tsx
-        ProductCard/
-          ProductCard.tsx
-          ProductCard.css
+        catalog/
+          ProductCatalog/
+            ProductCatalog.tsx
+            ProductCatalog.css
+          ProductCard/
+            ProductCard.tsx
+            ProductCard.css
+        filtering/
+          ProductFilters/
+            ProductFilters.tsx
+            ProductFilters.css
+        loading/
+          ProductLoading/
+            ProductLoading.tsx
+            ProductLoading.css
+          productSkeleton.css
       modules/
         catalog/
           products.api.ts

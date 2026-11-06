@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getProducts } from './products.api.ts';
 import type { Product } from './products.types.ts';
 
-type CatalogState =
+export type CatalogState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; products: Product[] };
