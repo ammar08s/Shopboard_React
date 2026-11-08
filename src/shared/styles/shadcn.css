@@ -1,0 +1,24 @@
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source '../components/ui';
+@source '../modules/ui/buttonVariants.ts';
+
+:root {
+  --ui-destructive: #b02d30;
+  --ui-primary-foreground: #fff;
+}
+
+/* Shared shadcn primitives use Tailwind utilities; the application retains its own reset. */
+@theme inline {
+  --color-background: var(--surface);
+  --color-foreground: #252d29;
+  --color-primary: var(--green);
+  --color-primary-foreground: var(--ui-primary-foreground);
+  --color-accent: #edf2e9;
+  --color-accent-foreground: var(--green);
+  --color-muted-foreground: var(--muted);
+  --color-input: #b9c1b8;
+  --color-ring: #729c7c;
+  --color-destructive: var(--ui-destructive);
+}

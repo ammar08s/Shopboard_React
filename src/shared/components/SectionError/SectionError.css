@@ -1,0 +1,24 @@
+.ui-section-error {
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.ui-section-error h2 {
+  font:
+    600 20px Manrope,
+    sans-serif;
+}
+.ui-section-error p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.ui-section-error button {
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  padding: 10px 16px;
+  background: var(--green);
+  color: white;
+}

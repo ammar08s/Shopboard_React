@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { focusElement } from '../../../../shared/modules/focus/focusElement.ts';
 import type { FormEvent, ReactElement } from 'react';
 import type { Notify } from '../../../../shared/modules/toasts/toasts.types.ts';
 import {
@@ -29,18 +30,9 @@ export function CategoryManager({
 }: Props): ReactElement {
   const [pendingCategory, setPendingCategory] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const affectedCount =
     pendingCategory === null ? 0 : getCategoryProductCount(products, pendingCategory);
-
-  /** Brings a newly opened deletion form into view. No inputs.
-   * @returns Nothing; focuses the confirmation form after rendering.
-   */
-  function focusConfirmation(): void {
-    if (pendingCategory !== null) formRef.current?.focus();
-  }
-  useEffect(focusConfirmation, [pendingCategory]);
 
   /** Closes confirmation and returns focus to category management. No inputs.
    * @returns Nothing; clears confirmation state without another mutation or notification.
@@ -140,7 +132,7 @@ export function CategoryManager({
       {pendingCategory !== null ? (
         <form
           key={pendingCategory}
-          ref={formRef}
+          ref={focusElement}
           tabIndex={-1}
           onSubmit={confirmDeletion}
           className="admin-categories-confirm"

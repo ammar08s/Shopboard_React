@@ -1,0 +1,17 @@
+.checkout-field {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 0;
+}
+.checkout-field-optional {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.checkout-field-error {
+  margin: 0;
+  color: var(--ui-destructive);
+  font-size: 13px;
+  line-height: 1.5;
+}

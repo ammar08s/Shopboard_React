@@ -10,6 +10,7 @@ function matchesRouterTitles(): void {
   assert.equal(getStorePageTitle('/admin//'), 'Demo administration');
   assert.equal(getStorePageTitle('//'), 'Everyday essentials');
   assert.equal(getStorePageTitle('/PRODUCTS/1//'), 'Product details');
+  assert.equal(getStorePageTitle('/CHECKOUT/'), 'Checkout');
   assert.equal(getStorePageTitle('/products/1/extra'), 'Page not found');
 }
 
@@ -22,7 +23,15 @@ function matchesCatalogRoutes(): void {
   for (const path of ['/', '//', '/admin', '/ADMIN', '/admin//']) {
     assert.equal(needsProductCatalog(path), true);
   }
-  for (const path of ['/products/1', '/cart', '/login', '/admin/extra', '/unknown']) {
+  for (const path of [
+    '/products/1',
+    '/cart',
+    '/checkout',
+    '/CHECKOUT/',
+    '/login',
+    '/admin/extra',
+    '/unknown',
+  ]) {
     assert.equal(needsProductCatalog(path), false);
   }
 }

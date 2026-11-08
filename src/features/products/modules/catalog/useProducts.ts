@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
-import { getProducts } from './products.api.ts';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getCatalogQueryOptions, catalogQueryKey } from './products.query.ts';
+import { getErrorMessage } from '../../../../shared/modules/errors/errors.ts';
 import type { Product } from './products.types.ts';
 
 export type CatalogState =
@@ -7,44 +9,39 @@ export type CatalogState =
   | { status: 'error'; message: string }
   | { status: 'success'; products: Product[] };
 
-/** Loads catalog data only where the collection is needed, with cancellation.
- * @param enabled - Whether the active route needs the collection; defaults to true.
- * @returns Catalog state and a retry action.
+/** Observes the shared catalog cache without suspending the application shell.
+ * @param enabled - Whether the current route needs collection data.
+ * @returns Derived request feedback and an explicit retry action; no copied API state.
  */
 export function useProducts(enabled: boolean = true): { state: CatalogState; retry: () => void } {
-  const [state, setState] = useState<CatalogState>({ status: 'loading' });
-  const [attempt, setAttempt] = useState(0);
-  /** Starts a new request attempt. No inputs. @returns Nothing. */
-  function retry(): void {
-    setState({ status: 'loading' });
-    setAttempt(attempt + 1);
-  }
-  /** Synchronizes the catalog with the API when enabled. No inputs.
-   * @returns Request cleanup, or nothing when the active route does not need the collection.
+  const client = useQueryClient();
+  const query = useQuery({ ...getCatalogQueryOptions(), enabled });
+  /** Ties the catalog transport to routes that need it. No inputs.
+   * @returns Request cancellation when an enabled catalog route is left.
    */
-  function loadProducts(): (() => void) | undefined {
+  function synchronizeRequest(): (() => void) | undefined {
     if (!enabled) return;
-    const controller = new AbortController();
-    /** Stores valid results. @param products - Loaded catalog. @returns Nothing. */
-    function loaded(products: Product[]): void {
-      if (!controller.signal.aborted) setState({ status: 'success', products });
+    /** Stops a pending catalog request without clearing validated cached data. No inputs.
+     * @returns Nothing; cancels the transport as the last catalog route leaves.
+     */
+    function cancelRequest(): void {
+      void client.cancelQueries({ queryKey: catalogQueryKey });
     }
-    /** Stores a useful failure. @param error - Request failure. @returns Nothing. */
-    function failed(error: unknown): void {
-      if (!controller.signal.aborted)
-        setState({
-          status: 'error',
-          message:
-            error instanceof Error ? error.message : 'Unable to load the store. Please try again.',
-        });
-    }
-    void getProducts(controller.signal).then(loaded).catch(failed);
-    /** Cancels the active request. No inputs. @returns Nothing. */
-    function cleanup(): void {
-      controller.abort();
-    }
-    return cleanup;
+    return cancelRequest;
   }
-  useEffect(loadProducts, [attempt, enabled]);
+  useEffect(synchronizeRequest, [client, enabled]);
+  /** Starts a fresh attempt in the same shared cache entry. No inputs.
+   * @returns Nothing; observers receive pending, error, or successful results from the cache.
+   */
+  function retry(): void {
+    void query.refetch();
+  }
+  let state: CatalogState = { status: 'loading' };
+  if (query.isError)
+    state = {
+      status: 'error',
+      message: getErrorMessage(query.error, 'Unable to load the store. Please try again.'),
+    };
+  else if (query.data !== undefined) state = { status: 'success', products: query.data };
   return { state, retry };
 }

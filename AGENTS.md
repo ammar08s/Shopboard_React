@@ -8,7 +8,7 @@ These instructions apply throughout this repository. Keep this document updated 
 
 - Build ShopBoard with React and TypeScript using the existing Vite setup.
 - This repository contains the frontend. Access the backend through API clients; do not add backend code here.
-- Use plain CSS for now. Keep the styling approach replaceable.
+- Use plain CSS for application and feature layouts. Shared shadcn/ui primitives in `shared/components/ui/` use Tailwind utilities from `shared/styles/shadcn.css` without Preflight; restrict source scanning to those primitives and their variants so existing styling stays independent.
 - Keep product requirements, user flows, and backend contracts in `design.md`. This file defines engineering and agent working rules.
 
 ## Feature-based architecture
@@ -144,12 +144,15 @@ function searchProducts(products: Product[], query: string): Product[] {
 
 - Use function components and follow the Rules of Hooks.
 - Use React Router for route composition, route parameters, and internal navigation. Keep application routes in `src/app/` and route-specific UI and data access in the owning feature.
-- Declare lazy route imports at module scope and provide a Suspense loading state plus recoverable feedback for failed imports. Keep shared application UI and persistent state outside the route loading boundary.
+- Declare route module loaders at module scope. `RetryablePage` owns a stable lazy component and recreates it only after an explicit retry, so a rejected import is not permanently cached. Keep shared application UI and persistent state outside page loading/error boundaries.
+- Use Suspense-aware queries inside local `RequestBoundary` sections for API loading and retryable errors. The application QueryClient is the sole API-data owner; derive status and merged products without copying cached data into state. Keep editors and unrelated sections outside request boundaries. Expected empty/not-found/no-match results are ordinary UI, not exceptions. Let unexpected render failures reach the nearest Error Boundary.
+- Use effects only to synchronize external systems: document title/focus, timers, and request lifetime/cancellation. Use event handlers for user actions, derive computed values during rendering, and prefer stable mount refs when focus is needed only as a confirmation appears.
 - Keep rendering pure. Perform user-triggered work in event handlers and use effects for synchronization with external systems.
 - Start with React's built-in state tools. Add a state library only when a concrete need justifies it.
 - Keep state close to where it is used. Lift it only when consumers need to share it.
 - Keep the cart in the application-level `CartProvider` above the route loading boundary. Read it through the cart feature's `useCart()` consumer and change it only through provider actions. Keep product-to-cart coordination in application components so features do not import each other. Component-local state stays local.
-- Derive values from existing state instead of storing duplicate state.
+- Every piece of state must have one owner and one copy. Anything that can be calculated from existing state or props is derived data, not state. Calculate it during rendering instead of storing or synchronizing a separate copy.
+- React Hook Form owns checkout field values, touched state, errors, and submission status. Keep all checkout validation and normalization in one Zod schema connected through `zodResolver`; do not duplicate rules in components or registration options. Keep form state local and coordinate checkout with cart actions through the application layer.
 - Never mutate React state directly. Use stable identifiers for list keys.
 - Extract custom hooks when stateful behavior has a clear independent responsibility; do not add hooks solely to wrap a single trivial expression.
 

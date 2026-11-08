@@ -60,6 +60,9 @@ export function Cart(_props: Props): ReactElement {
               <strong>{formatCartPrice(totalCents)}</strong>
             </div>
           </div>
+          <Link className="cart-checkout" to="/checkout">
+            Continue to checkout <span aria-hidden="true">↗</span>
+          </Link>
         </>
       )}
       <p className="cart-demo-note">Demo cart · No orders or payments are placed.</p>

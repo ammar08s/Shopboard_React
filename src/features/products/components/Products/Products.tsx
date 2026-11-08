@@ -1,30 +1,49 @@
 import type { ReactElement } from 'react';
-import type { CatalogState } from '../../modules/catalog/useProducts.ts';
+import { ErrorBoundary } from 'react-error-boundary';
+import { SectionError } from '../../../../shared/components/SectionError/SectionError.tsx';
+import { RequestBoundary } from '../../../../shared/components/RequestBoundary/RequestBoundary.tsx';
+import type { RequestErrorProps } from '../../../../shared/components/RequestBoundary/RequestBoundary.tsx';
+import { getErrorMessage } from '../../../../shared/modules/errors/errors.ts';
 import type { Product } from '../../modules/catalog/products.types.ts';
 import { ProductCatalog } from '../catalog/ProductCatalog/ProductCatalog.tsx';
 import { ProductError } from '../feedback/ProductError/ProductError.tsx';
 import { ProductLoading } from '../loading/ProductLoading/ProductLoading.tsx';
+import { SuspendedCatalog } from '../catalog/SuspendedCatalog/SuspendedCatalog.tsx';
 
 interface Props {
-  state: CatalogState;
   products: Product[];
   onRetry: () => void;
   onAddToCart: (product: Product) => void;
 }
 
 /**
- * Connects application-owned catalog state to browsing and request feedback.
- * @param props - Request state, merged products, retry, and add-to-cart actions.
+ * Connects merged products to independently bounded request and browsing feedback.
+ * @param props - Merged products, retry, and add-to-cart actions.
  * @returns Loading feedback, retryable error feedback, or the loaded catalog.
  */
-export function Products({ state, products, onRetry, onAddToCart }: Props): ReactElement {
-  if (state.status === 'loading') return <ProductLoading />;
+export function Products({ products, onRetry, onAddToCart }: Props): ReactElement {
+  /** Keeps saved products browsable when a catalog request or render fails.
+   * @param props - Request failure and reset action.
+   * @returns Retry feedback and any available local product snapshots.
+   */
+  function renderFailure({ error, resetErrorBoundary }: RequestErrorProps): ReactElement {
+    return (
+      <>
+        <ProductError
+          message={getErrorMessage(error, 'Unable to display the collection. Try again.')}
+          onRetry={resetErrorBoundary}
+        />
+        {products.length > 0 ? (
+          <ErrorBoundary FallbackComponent={SectionError}>
+            <ProductCatalog products={products} onAddToCart={onAddToCart} />
+          </ErrorBoundary>
+        ) : null}
+      </>
+    );
+  }
   return (
-    <>
-      {state.status === 'error' ? <ProductError message={state.message} onRetry={onRetry} /> : null}
-      {state.status === 'success' || products.length > 0 ? (
-        <ProductCatalog products={products} onAddToCart={onAddToCart} />
-      ) : null}
-    </>
+    <RequestBoundary loading={<ProductLoading />} renderError={renderFailure} onRetry={onRetry}>
+      <SuspendedCatalog products={products} onAddToCart={onAddToCart} />
+    </RequestBoundary>
   );
 }

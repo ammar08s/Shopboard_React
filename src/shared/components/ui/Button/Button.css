@@ -1,0 +1,4 @@
+/* Keep link buttons readable above the application's unlayered anchor reset. */
+a.ui-button[data-variant='default'] {
+  color: var(--ui-primary-foreground);
+}

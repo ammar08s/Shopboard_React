@@ -1,14 +1,15 @@
 import type { ReactElement } from 'react';
 import './PageLoadError.css';
 
-// This fallback accepts any page's prop object and intentionally reads none of it.
-interface Props {}
+interface Props {
+  resetErrorBoundary: () => void;
+}
 
 /** Provides a recovery action when a requested page module cannot be downloaded.
- * @param _props - Ignored props forwarded from whichever page failed to load.
- * @returns An accessible route error and an explicit reload action.
+ * @param props - Error Boundary reset action for the failed page.
+ * @returns An accessible route error, retry action, and full reload recovery option.
  */
-export function PageLoadError(_props: Props): ReactElement {
+export function PageLoadError({ resetErrorBoundary }: Props): ReactElement {
   /** Retries with the current page and asset references. No inputs.
    * @returns Nothing; reloads the browser only after the user requests it.
    */
@@ -18,8 +19,11 @@ export function PageLoadError(_props: Props): ReactElement {
 
   return (
     <section className="store-page-error" role="alert">
-      <h1>This page could not be loaded</h1>
-      <p>Check your connection and reload the page to try again.</p>
+      <h1>This page could not be displayed</h1>
+      <p>Try the page again. If the app has been updated, reload to get the latest version.</p>
+      <button type="button" onClick={resetErrorBoundary}>
+        Try again
+      </button>{' '}
       <button type="button" onClick={reloadPage}>
         Reload page
       </button>

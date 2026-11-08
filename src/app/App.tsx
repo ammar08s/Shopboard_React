@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useDemoAuth } from '../features/admin/modules/session/useDemoAuth.ts';
@@ -11,58 +11,57 @@ import { CartProvider } from './components/CartProvider/CartProvider.tsx';
 import { getStorePageTitle, needsProductCatalog } from './modules/navigation/storePage.ts';
 import { ToastRegion } from '../shared/components/ToastRegion/ToastRegion.tsx';
 import { useToasts } from '../shared/modules/toasts/useToasts.ts';
-import { lazyPage } from './lazyPage.ts';
+import { RetryablePage } from './components/RetryablePage/RetryablePage.tsx';
+import { useProductRequestLifetime } from './modules/navigation/useProductRequestLifetime.ts';
 import './App.css';
 
-const CollectionPage = lazyPage(
-  /** Loads collection composition only when its route renders. No inputs.
-   * @returns A promise exposing the collection page as the lazy component.
-   */
-  async function loadCollectionPage() {
-    const page = await import('./components/CollectionPage/CollectionPage.tsx');
-    return { default: page.CollectionPage };
-  },
-);
+/** Loads collection composition only when its route renders. No inputs.
+ * @returns A promise exposing the collection page as the lazy component.
+ */
+async function loadCollectionPage() {
+  const page = await import('./components/CollectionPage/CollectionPage.tsx');
+  return { default: page.CollectionPage };
+}
 
-const ProductDetailsPage = lazyPage(
-  /** Loads product details and comments only when a product route renders. No inputs.
-   * @returns A promise exposing the product detail page as the lazy component.
-   */
-  async function loadProductDetails() {
-    const page = await import('./components/ProductDetailsPage/ProductDetailsPage.tsx');
-    return { default: page.ProductDetailsPage };
-  },
-);
+/** Loads product details and comments only when a product route renders. No inputs.
+ * @returns A promise exposing the product detail page as the lazy component.
+ */
+async function loadProductDetails() {
+  const page = await import('./components/ProductDetailsPage/ProductDetailsPage.tsx');
+  return { default: page.ProductDetailsPage };
+}
 
-const Cart = lazyPage(
-  /** Loads cart UI only when the cart route renders. No inputs.
-   * @returns A promise exposing the cart page as the lazy component.
-   */
-  async function loadCartPage() {
-    const page = await import('../features/cart/components/Cart/Cart.tsx');
-    return { default: page.Cart };
-  },
-);
+/** Loads cart UI only when the cart route renders. No inputs.
+ * @returns A promise exposing the cart page as the lazy component.
+ */
+async function loadCartPage() {
+  const page = await import('../features/cart/components/Cart/Cart.tsx');
+  return { default: page.Cart };
+}
 
-const Login = lazyPage(
-  /** Loads the sign-in form only when the login route renders. No inputs.
-   * @returns A promise exposing the login page as the lazy component.
-   */
-  async function loadLoginPage() {
-    const page = await import('../features/admin/components/Login/Login.tsx');
-    return { default: page.Login };
-  },
-);
+/** Loads checkout and its form libraries only when the checkout route renders. No inputs.
+ * @returns A promise exposing checkout composition as the lazy component.
+ */
+async function loadCheckoutPage() {
+  const page = await import('./components/CheckoutPage/CheckoutPage.tsx');
+  return { default: page.CheckoutPage };
+}
 
-const AdminDashboard = lazyPage(
-  /** Loads administration UI only when its authenticated route renders. No inputs.
-   * @returns A promise exposing the dashboard as the lazy component.
-   */
-  async function loadAdminDashboard() {
-    const page = await import('../features/admin/components/AdminDashboard/AdminDashboard.tsx');
-    return { default: page.AdminDashboard };
-  },
-);
+/** Loads the sign-in form only when the login route renders. No inputs.
+ * @returns A promise exposing the login page as the lazy component.
+ */
+async function loadLoginPage() {
+  const page = await import('../features/admin/components/Login/Login.tsx');
+  return { default: page.Login };
+}
+
+/** Loads administration UI only when its authenticated route renders. No inputs.
+ * @returns A promise exposing the dashboard as the lazy component.
+ */
+async function loadAdminDashboard() {
+  const page = await import('./components/AdminPage/AdminPage.tsx');
+  return { default: page.AdminPage };
+}
 
 interface Props {
   children?: never;
@@ -81,6 +80,7 @@ function App(_props: Props): ReactElement {
   const pageTitle = getStorePageTitle(location.pathname);
   const mainRef = useRef<HTMLElement>(null);
   const needsCatalog = needsProductCatalog(location.pathname);
+  useProductRequestLifetime(location.pathname);
   const { state, retry } = useProducts(needsCatalog);
   const { toasts, announcement, notify, dismiss } = useToasts();
   const demo = useDemoCatalog(state.status === 'success' ? state.products : emptyProducts, notify);
@@ -148,69 +148,82 @@ function App(_props: Props): ReactElement {
       <div className="store-shell">
         <StoreHeader signedIn={auth.signedIn} onLogout={logout} />
         <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <Suspense
-            key={location.pathname}
-            fallback={
-              <p className="store-page-loading" role="status">
-                Loading page…
-              </p>
-            }
-          >
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <CollectionPage
-                    state={state}
-                    products={demo.products}
-                    onRetry={retryCollection}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <RetryablePage
+                  key={location.pathname}
+                  load={loadCollectionPage}
+                  pageProps={{ products: demo.products, onRetry: retryCollection }}
+                />
+              }
+            />
+            <Route
+              path="/products/:productId"
+              element={
+                <RetryablePage key={location.pathname} load={loadProductDetails} pageProps={{}} />
+              }
+            />
+            <Route
+              path="/cart"
+              element={<RetryablePage key={location.pathname} load={loadCartPage} pageProps={{}} />}
+            />
+            <Route
+              path="/checkout"
+              element={
+                <RetryablePage key={location.pathname} load={loadCheckoutPage} pageProps={{}} />
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                auth.signedIn ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <RetryablePage
+                    key={location.pathname}
+                    load={loadLoginPage}
+                    pageProps={{ onLogin: login }}
                   />
-                }
-              />
-              <Route
-                path="/products/:productId"
-                element={<ProductDetailsPage key={location.pathname} />}
-              />
-              <Route path="/cart" element={<Cart />} />
-              <Route
-                path="/login"
-                element={
-                  auth.signedIn ? <Navigate to="/admin" replace /> : <Login onLogin={login} />
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  auth.signedIn ? (
-                    <AdminDashboard
-                      products={demo.products}
-                      catalogStatus={state.status}
-                      catalogError={state.status === 'error' ? state.message : null}
-                      storageError={demo.storageError}
-                      onRetry={retryCollection}
-                      onCreate={demo.createProduct}
-                      onUpdate={demo.updateProduct}
-                      onDelete={demo.deleteProduct}
-                      onDeleteCategory={demo.deleteCategory}
-                      onNotify={notify}
-                    />
-                  ) : (
-                    <Navigate to="/login" replace />
-                  )
-                }
-              />
-              <Route
-                path="*"
-                element={
-                  <section className="store-not-found">
-                    <h1>Page not found</h1>
-                    <p>This link doesn’t lead to a ShopBoard page.</p>
-                    <Link to="/">Back to the collection</Link>
-                  </section>
-                }
-              />
-            </Routes>
-          </Suspense>
+                )
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                auth.signedIn ? (
+                  <RetryablePage
+                    key={location.pathname}
+                    load={loadAdminDashboard}
+                    pageProps={{
+                      products: demo.products,
+                      catalogStatus: state.status,
+                      storageError: demo.storageError,
+                      onRetry: retryCollection,
+                      onCreate: demo.createProduct,
+                      onUpdate: demo.updateProduct,
+                      onDelete: demo.deleteProduct,
+                      onDeleteCategory: demo.deleteCategory,
+                      onNotify: notify,
+                    }}
+                  />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <section className="store-not-found">
+                  <h1>Page not found</h1>
+                  <p>This link doesn’t lead to a ShopBoard page.</p>
+                  <Link to="/">Back to the collection</Link>
+                </section>
+              }
+            />
+          </Routes>
         </main>
         <StoreFooter />
       </div>

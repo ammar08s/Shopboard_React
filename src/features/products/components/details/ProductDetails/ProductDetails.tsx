@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
 import { Link, useParams } from 'react-router';
+import { ErrorBoundary } from 'react-error-boundary';
+import { SectionError } from '../../../../../shared/components/SectionError/SectionError.tsx';
 import type { Product } from '../../../modules/catalog/products.types.ts';
 import { parseProductId } from '../../../modules/details/products.details.ts';
 import { useProduct } from '../../../modules/details/useProduct.ts';
@@ -13,11 +15,11 @@ interface Props {
 
 /** Displays the API product selected by the route and its request feedback.
  * @param props - Callback connecting an available product to the application-owned cart.
- * @returns Product details, loading feedback, a retryable error, or a not-found page.
+ * @returns Product details or a not-found page; pending reads suspend and errors reach the surrounding boundary.
  */
 export function ProductDetails({ onAddToCart }: Props): ReactElement {
   const { productId } = useParams();
-  const { state, retry } = useProduct(parseProductId(productId));
+  const product = useProduct(parseProductId(productId));
   const backLink = (
     <Link className="products-detail-back" to="/">
       &larr; Back to the collection
@@ -28,23 +30,10 @@ export function ProductDetails({ onAddToCart }: Props): ReactElement {
    * @returns Nothing; forwards only an available, successfully loaded product.
    */
   function addToCart(): void {
-    if (state.status === 'success' && state.product.inStock) onAddToCart(state.product);
+    if (product !== null && product.inStock) onAddToCart(product);
   }
 
-  if (state.status === 'loading') {
-    return (
-      <section className="products-detail">
-        {backLink}
-        <p role="status">Loading product details…</p>
-        <div className="products-detail-skeleton" aria-hidden="true">
-          <div />
-          <div />
-        </div>
-      </section>
-    );
-  }
-
-  if (state.status === 'not-found') {
+  if (product === null) {
     return (
       <section className="products-detail products-detail-message">
         {backLink}
@@ -56,20 +45,6 @@ export function ProductDetails({ onAddToCart }: Props): ReactElement {
     );
   }
 
-  if (state.status === 'error') {
-    return (
-      <section className="products-detail products-detail-message">
-        {backLink}
-        <h1>We couldn’t load this product</h1>
-        <p role="alert">{state.message}</p>
-        <button className="products-detail-button" type="button" onClick={retry}>
-          Try again
-        </button>
-      </section>
-    );
-  }
-
-  const { product } = state;
   return (
     <section className="products-detail" aria-labelledby="products-detail-title">
       {backLink}
@@ -105,7 +80,9 @@ export function ProductDetails({ onAddToCart }: Props): ReactElement {
           </button>
         </div>
       </div>
-      <ProductComments key={product.id} productId={product.id} />
+      <ErrorBoundary key={product.id} FallbackComponent={SectionError}>
+        <ProductComments productId={product.id} />
+      </ErrorBoundary>
     </section>
   );
 }

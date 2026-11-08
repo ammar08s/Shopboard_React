@@ -12,8 +12,7 @@
   text-underline-offset: 4px;
 }
 
-.products-detail-layout,
-.products-detail-skeleton {
+.products-detail-layout {
   display: grid;
   gap: 28px;
 }
@@ -123,26 +122,18 @@
   cursor: default;
 }
 
-.products-detail-skeleton > div {
-  min-height: 260px;
-  border-radius: var(--radius);
-  background: var(--line);
-}
-
 @media (min-width: 760px) {
   .products-detail {
     padding: 36px 0 64px;
   }
 
-  .products-detail-layout,
-  .products-detail-skeleton {
+  .products-detail-layout {
     grid-template-columns: 1fr 1fr;
     gap: 48px;
     align-items: center;
   }
 
-  .products-detail-art,
-  .products-detail-skeleton > div {
+  .products-detail-art {
     min-height: 380px;
   }
 }

@@ -7,6 +7,7 @@ import { matchPath } from 'react-router';
 export function getStorePageTitle(pathname: string): string {
   if (matchPath('/', pathname) !== null) return 'Everyday essentials';
   if (matchPath('/cart', pathname) !== null) return 'Your cart';
+  if (matchPath('/checkout', pathname) !== null) return 'Checkout';
   if (matchPath('/login', pathname) !== null) return 'Admin login';
   if (matchPath('/admin', pathname) !== null) return 'Demo administration';
   if (matchPath('/products/:productId', pathname) !== null) return 'Product details';

@@ -1,5 +1,5 @@
-﻿import { useEffect, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
+import { useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { Notify } from '../../../../shared/modules/toasts/toasts.types.ts';
 import {
@@ -10,17 +10,22 @@ import type {
   AdminProduct,
   AdminProductDraft,
 } from '../../modules/catalog/admin.products.types.ts';
-import { AdminProductList } from '../AdminProductList/AdminProductList.tsx';
+import { focusElement } from '../../../../shared/modules/focus/focusElement.ts';
 import { ProductEditor } from '../ProductEditor/ProductEditor.tsx';
 import { CategoryManager } from '../CategoryManager/CategoryManager.tsx';
 import './AdminDashboard.css';
 
-interface Props {
+export interface ProductListProps {
+  products: AdminProduct[];
+  onEdit: (product: AdminProduct) => void;
+  onRequestDelete: (product: AdminProduct) => void;
+}
+
+export interface Props {
   products: AdminProduct[];
   catalogStatus: 'loading' | 'error' | 'success';
-  catalogError: string | null;
   storageError: string | null;
-  onRetry: () => void;
+  renderProducts: (props: ProductListProps) => ReactNode;
   onCreate: (draft: AdminProductDraft) => void;
   onUpdate: (id: number, draft: AdminProductDraft) => void;
   onDelete: (id: number) => void;
@@ -35,9 +40,8 @@ interface Props {
 export function AdminDashboard({
   products,
   catalogStatus,
-  catalogError,
   storageError,
-  onRetry,
+  renderProducts,
   onCreate,
   onUpdate,
   onDelete,
@@ -49,15 +53,6 @@ export function AdminDashboard({
   const [editorCategory, setEditorCategory] = useState('');
   const [pendingDelete, setPendingDelete] = useState<AdminProduct | null>(null);
   const [formRevision, setFormRevision] = useState(0);
-  const confirmationRef = useRef<HTMLDivElement>(null);
-
-  /** Brings the confirmation into view for keyboard and pointer users. No inputs.
-   * @returns Nothing; focuses the visible confirmation after a delete request.
-   */
-  function focusConfirmation(): void {
-    if (pendingDelete !== null) confirmationRef.current?.focus();
-  }
-  useEffect(focusConfirmation, [pendingDelete]);
 
   /** Restores an empty create form. No inputs.
    * @returns Nothing; clears editing state and remounts the uncontrolled form.
@@ -163,20 +158,10 @@ export function AdminDashboard({
         this browser. The original API is read-only.
       </p>
       {storageError !== null ? <p className="admin-dashboard-warning">{storageError}</p> : null}
-      {catalogStatus === 'loading' ? (
-        <p role="status">Loading the API collection. You can still create demo products.</p>
-      ) : null}
-      {catalogStatus === 'error' ? (
-        <div className="admin-dashboard-warning" role="alert">
-          <p>{catalogError} Your saved demo products remain editable.</p>
-          <button type="button" onClick={onRetry}>
-            Retry collection
-          </button>
-        </div>
-      ) : null}
       {pendingDelete !== null ? (
         <div
-          ref={confirmationRef}
+          key={pendingDelete.id}
+          ref={focusElement}
           tabIndex={-1}
           className="admin-dashboard-confirm"
           role="group"
@@ -206,11 +191,7 @@ export function AdminDashboard({
           onCancel={cancelEdit}
           onNotify={onNotify}
         />
-        <AdminProductList
-          products={products}
-          onEdit={editProduct}
-          onRequestDelete={requestDelete}
-        />
+        {renderProducts({ products, onEdit: editProduct, onRequestDelete: requestDelete })}
       </div>
       <CategoryManager
         products={products}
