@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { Product } from '../../../modules/catalog/products.types.ts';
 import { formatPrice } from '../../../modules/pricing/products.price.ts';
 
@@ -11,13 +11,10 @@ interface Props {
 
 /** Displays a product and its cart action. @param props - Product to display and cart addition callback. @returns Product card. */
 export function ProductCard({ product, onAddToCart }: Props): ReactElement {
-  const [hasAdded, setHasAdded] = useState(false);
-
-  /** Adds the available product and displays feedback. No inputs. @returns Nothing. */
+  /** Requests addition of an available product; the action reports feedback through a toast. No inputs. @returns Nothing. */
   function addToCart(): void {
     if (!product.inStock) return;
     onAddToCart(product);
-    setHasAdded(true);
   }
 
   return (
@@ -53,13 +50,6 @@ export function ProductCard({ product, onAddToCart }: Props): ReactElement {
           {product.inStock ? 'Add to cart' : 'Unavailable'}
           {product.inStock ? <span aria-hidden="true">+</span> : null}
         </button>
-        <p className="products-cart-feedback" role="status">
-          {hasAdded ? (
-            <>
-              In your cart. <a href="#cart">View cart</a>
-            </>
-          ) : null}
-        </p>
       </div>
     </article>
   );

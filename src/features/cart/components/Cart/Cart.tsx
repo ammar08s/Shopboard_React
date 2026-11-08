@@ -44,11 +44,7 @@ export function Cart({
           </button>
         ) : null}
       </div>
-      {storageError ? (
-        <p className="cart-storage-error" role="status">
-          {storageError}
-        </p>
-      ) : null}
+      {storageError ? <p className="cart-storage-error">{storageError}</p> : null}
       {items.length === 0 ? (
         <div className="cart-empty">
           <h3>A little room for something good.</h3>

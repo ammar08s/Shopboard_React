@@ -50,13 +50,6 @@
   border-radius: 6px;
   color: inherit;
 }
-.admin-dashboard-status {
-  color: var(--green);
-  font-size: 14px;
-  line-height: 1.5;
-  min-height: 21px;
-  margin: 22px 0;
-}
 .admin-dashboard-confirm {
   padding: 20px;
   margin-bottom: 28px;
@@ -89,6 +82,7 @@
 .admin-dashboard-layout {
   display: grid;
   gap: 32px;
+  margin-top: 28px;
 }
 @media (min-width: 1000px) {
   .admin-dashboard-heading {

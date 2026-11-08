@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react';
 import type { ChangeEvent, FormEvent, ReactElement } from 'react';
+import type { Notify } from '../../../../shared/modules/toasts/toasts.types.ts';
 import { resolveCategoryName } from '../../modules/catalog/admin.categories.ts';
 import { validateProductDraft } from '../../modules/catalog/admin.products.ts';
 import type {
@@ -11,26 +12,36 @@ import './ProductEditor.css';
 interface Props {
   product: AdminProduct | null;
   categories: string[];
+  category: string;
+  onCategoryChange: (category: string) => void;
   onSave: (draft: AdminProductDraft) => void;
   onCancel: () => void;
+  onNotify: Notify;
 }
 
 /** Displays a product creation or editing form; the parent keys it when the draft changes.
- * @param props - Product defaults, category choices, and save/cancel actions.
+ * @param props - Product defaults, controlled category choice, category options, and form actions.
  * @returns A validated product form with existing or newly entered category selection.
  */
-export function ProductEditor({ product, categories, onSave, onCancel }: Props): ReactElement {
+export function ProductEditor({
+  product,
+  categories,
+  category,
+  onCategoryChange,
+  onSave,
+  onCancel,
+  onNotify,
+}: Props): ReactElement {
   const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState(product?.category ?? '');
   const [creatingCategory, setCreatingCategory] = useState(false);
   const selectedCategory = resolveCategoryName(category, categories);
 
   /** Selects an existing category.
    * @param event - Category dropdown change.
-   * @returns Nothing; updates the selected category.
+   * @returns Nothing; reports the selected category to the dashboard.
    */
   function selectCategory(event: ChangeEvent<HTMLSelectElement>): void {
-    setCategory(event.currentTarget.value);
+    onCategoryChange(event.currentTarget.value);
   }
 
   /** Opens the new category field. No inputs.
@@ -78,6 +89,7 @@ export function ProductEditor({ product, categories, onSave, onCancel }: Props):
     });
     if (!result.success) {
       setError(result.message);
+      onNotify({ variant: 'error', message: result.message });
       return;
     }
     onSave(result.product);
@@ -87,7 +99,10 @@ export function ProductEditor({ product, categories, onSave, onCancel }: Props):
     <section className="admin-editor" aria-labelledby="admin-editor-title">
       <span className="ui-eyebrow">Collection details</span>
       <h2 id="admin-editor-title">{product === null ? 'Create a product' : 'Edit product'}</h2>
-      <form onSubmit={submitProduct}>
+      <form
+        onSubmit={submitProduct}
+        aria-describedby={error === null ? undefined : 'admin-product-error'}
+      >
         <label htmlFor="product-title">Product name</label>
         <input
           id="product-title"
@@ -163,7 +178,7 @@ export function ProductEditor({ product, categories, onSave, onCancel }: Props):
           Available in stock
         </label>
         {error !== null ? (
-          <p className="admin-editor-error" role="alert">
+          <p id="admin-product-error" className="admin-editor-error">
             {error}
           </p>
         ) : null}

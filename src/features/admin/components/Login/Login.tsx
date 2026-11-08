@@ -32,7 +32,11 @@ export function Login({ onLogin }: Props): ReactElement {
         Admin sign in<span>.</span>
       </h1>
       <p>Manage the collection in your own demo workspace.</p>
-      <form onSubmit={submitLogin} className="admin-login-form">
+      <form
+        onSubmit={submitLogin}
+        className="admin-login-form"
+        aria-describedby={error === null ? undefined : 'admin-login-error'}
+      >
         <label htmlFor="admin-email">Email</label>
         <input
           id="admin-email"
@@ -51,7 +55,7 @@ export function Login({ onLogin }: Props): ReactElement {
           required
         />
         {error !== null ? (
-          <p className="admin-login-error" role="alert">
+          <p id="admin-login-error" className="admin-login-error">
             {error}
           </p>
         ) : null}

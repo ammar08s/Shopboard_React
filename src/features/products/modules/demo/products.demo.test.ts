@@ -5,6 +5,7 @@ import {
   createDemoProduct,
   updateDemoProduct,
   deleteDemoProduct,
+  deleteDemoCategory,
   parseDemoChanges,
 } from './products.demo.ts';
 import type { Product } from '../catalog/products.types.ts';
@@ -80,3 +81,42 @@ test(
   'validates saved catalog changes and rejects invalid or duplicate products',
   validatesSavedChanges,
 );
+
+/** Checks deletion moves products without losing edits, restoring deleted products, or mutating API data. No inputs.
+ * @returns Nothing.
+ */
+function deletesCategory(): void {
+  const boots = { ...original, id: 3, title: 'Boots', category: 'Shoes' };
+  const base = [original, { ...original, id: 2, title: 'Pouch', category: ' BAGS ' }, boots];
+  const edited = { ...original, title: 'Edited tote', priceCents: 999 };
+  const created = { ...original, id: -1, title: 'Local bag', category: 'bags' };
+  const changes = { products: [edited, created], deletedIds: [2] };
+  const removed = deleteDemoCategory(base, changes, ' bags ', 'Accessories');
+  const expected = [
+    { ...edited, category: 'Accessories' },
+    boots,
+    { ...created, category: 'Accessories' },
+  ];
+  assert.deepEqual(applyDemoChanges(base, removed), expected);
+  assert.deepEqual(removed.deletedIds, [2]);
+  assert.equal(original.category, 'Bags');
+  assert.equal(changes.products[0]?.category, 'Bags');
+  assert.equal(changes.products[1]?.category, 'bags');
+  const restored = parseDemoChanges(JSON.stringify({ version: 1, ...removed }));
+  assert.deepEqual(applyDemoChanges(base, restored), expected);
+}
+test(
+  'deletes categories locally by moving API and demo products and persists the result',
+  deletesCategory,
+);
+
+/** Checks invalid category moves cannot create blank or unchanged destinations. No inputs.
+ * @returns Nothing.
+ */
+function rejectsInvalidCategoryMoves(): void {
+  const changes = { products: [], deletedIds: [] };
+  assert.deepEqual(deleteDemoCategory([original], changes, 'Bags', ' bags '), changes);
+  assert.deepEqual(deleteDemoCategory([original], changes, 'Bags', ' '), changes);
+  assert.deepEqual(deleteDemoCategory([original], changes, 'Missing', 'Home'), changes);
+}
+test('ignores invalid or missing category moves', rejectsInvalidCategoryMoves);

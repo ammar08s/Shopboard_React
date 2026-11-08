@@ -2,6 +2,8 @@
 
 These instructions apply throughout this repository. Keep this document updated when project conventions change.
 
+`AGENTS.md` is the authoritative engineering rules file. Keep `CLAUDE.md` byte-for-byte identical whenever these rules change.
+
 ## Scope and stack
 
 - Build ShopBoard with React and TypeScript using the existing Vite setup.
@@ -137,7 +139,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 ## React and state
 
 - Keep exactly one React component per file. Each component must declare a typed `Props` interface; components without configurable props may use `interface Props { children?: never }`.
-- Apply `vercel-composition-patterns` and `vercel-react-best-practices` when writing or reviewing React code; use rules applicable to this Vite client application.
+- Apply the repository skills at `.agents/skills/vercel-composition-patterns/SKILL.md` and `.agents/skills/vercel-react-best-practices/SKILL.md` when writing or reviewing React code; use rules applicable to this Vite client application.
 - Apply `code-simplifier` to touched code during implementation and final review, preserving behavior and the required function documentation.
 
 - Use function components and follow the Rules of Hooks.
@@ -180,13 +182,16 @@ function searchProducts(products: Product[], query: string): Product[] {
 - Keep changes focused on the requested task. Preserve unrelated user changes.
 - Keep naming consistent: PascalCase for components and component files; camelCase for functions and variables; `use` prefixes for hooks; descriptive feature filenames such as `products.api.ts`.
 - Use the existing Oxlint and Prettier configurations.
+- Run `npm run format` to apply project formatting and `npm run format:check` to check it without changing files. Keep LF text line endings as defined in `.gitattributes`.
+- Keep complete project-scoped Codex skills in `.agents/skills/`, including their referenced rule files. Preserve third-party skill contents and exclude them from application formatting and linting.
+- Keep the Husky pre-commit hook active through the `prepare` script. Its `lint-staged.config.mjs` tasks check staged TypeScript with Oxlint, supported staged files with Prettier, and the full project with `npm run typecheck` before restoring unstaged edits to partially staged files. Fix failures before committing.
 - Update relevant documentation when architecture, setup, or behavior changes.
 - Keep the README component tree rooted at `App` synchronized with every component file, its props, conditional rendering, and state ownership. Verify it in React DevTools' Components tab when browser access is available; report any access limitation explicitly.
 - Discuss significant architecture changes or unclear product requirements before implementing them. Routine decisions within these rules can proceed.
 
 ## Validation and completion
 
-- For code changes, run `npm run lint` and `npm run build` before reporting completion.
+- For code changes, run `npm run lint`, `npm run typecheck`, `npm run format:check`, and `npm run build` before reporting completion.
 - Add focused behavior tests for meaningful business logic and bug fixes when test tooling is available. Do not introduce a testing framework without a concrete need.
 - Manually check affected UI behavior, responsive layouts, and relevant loading, error, empty, and success states when the application can be run.
 - Documentation-only changes require checking the resulting document, not running application tests.

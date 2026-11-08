@@ -1,0 +1,119 @@
+.admin-categories {
+  margin-top: 36px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.admin-categories h2 {
+  font:
+    600 22px Manrope,
+    sans-serif;
+  margin-bottom: 12px;
+}
+.admin-categories > p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.admin-categories ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+.admin-categories li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.admin-categories li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.admin-categories li button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #9c352d;
+  font-size: 12px;
+  padding: 6px;
+}
+.admin-categories-confirm {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #ddbcb5;
+  border-radius: 8px;
+  background: #fff4ef;
+}
+.admin-categories-confirm h3 {
+  font-size: 17px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.admin-categories-confirm p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+.admin-categories-confirm label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.admin-categories-confirm input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.admin-categories-confirm > span {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.admin-categories-error {
+  color: #9c352d;
+}
+.admin-categories-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+.admin-categories-actions button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #9c352d;
+  border-radius: 6px;
+  background: #9c352d;
+  color: white;
+  font-size: 13px;
+}
+.admin-categories-actions button[type='button'] {
+  background: transparent;
+  color: #9c352d;
+}
+.admin-categories button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (min-width: 700px) {
+  .admin-categories-confirm {
+    max-width: 560px;
+  }
+}

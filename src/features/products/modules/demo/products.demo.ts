@@ -72,6 +72,40 @@ export function deleteDemoProduct(changes: DemoChanges, id: number): DemoChanges
   };
 }
 
+/** Removes a local category by moving its products in one persistent catalog change.
+ * @param products - Current read-only API catalog.
+ * @param changes - Latest local edits, additions, and deletions.
+ * @param category - Category to remove, matched without casing or surrounding spaces.
+ * @param replacement - Validated destination category name.
+ * @returns Updated local replacements; preserves all product fields and ignores invalid moves.
+ */
+export function deleteDemoCategory(
+  products: Product[],
+  changes: DemoChanges,
+  category: string,
+  replacement: string,
+): DemoChanges {
+  const source = category.trim().toLowerCase();
+  const destination = replacement.trim();
+  if (
+    source === '' ||
+    destination === '' ||
+    destination.length > 60 ||
+    source === destination.toLowerCase()
+  )
+    return changes;
+
+  const replacements = new Map<number, Product>();
+  for (const product of changes.products) replacements.set(product.id, product);
+  let moved = false;
+  for (const product of applyDemoChanges(products, changes)) {
+    if (product.category.trim().toLowerCase() !== source) continue;
+    replacements.set(product.id, { ...product, category: destination });
+    moved = true;
+  }
+  return moved ? { ...changes, products: Array.from(replacements.values()) } : changes;
+}
+
 /** Checks a saved frontend product before trusting browser storage.
  * @param value - Unknown stored product.
  * @returns Whether all product fields are valid.

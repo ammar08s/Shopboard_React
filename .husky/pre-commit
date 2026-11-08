@@ -1,0 +1,2 @@
+# Leave room for npm command wrappers below Windows' 8,191-character limit.
+npx lint-staged --relative --max-arg-length 4096

@@ -13,6 +13,8 @@ import { StoreFooter } from './components/StoreFooter/StoreFooter.tsx';
 import { StoreHeader } from './components/StoreHeader/StoreHeader.tsx';
 import { StoreIntro } from './components/StoreIntro/StoreIntro.tsx';
 import { getStorePage, subscribeToStorePage } from './modules/navigation/storePage.ts';
+import { ToastRegion } from '../shared/components/ToastRegion/ToastRegion.tsx';
+import { useToasts } from '../shared/modules/toasts/useToasts.ts';
 import './App.css';
 
 interface Props {
@@ -30,9 +32,10 @@ function App(_props: Props): ReactElement {
   const page = useSyncExternalStore(subscribeToStorePage, getStorePage);
   const mainRef = useRef<HTMLElement>(null);
   const { state, retry } = useProducts();
-  const demo = useDemoCatalog(state.status === 'success' ? state.products : emptyProducts);
+  const { toasts, announcement, notify, dismiss } = useToasts();
+  const demo = useDemoCatalog(state.status === 'success' ? state.products : emptyProducts, notify);
   const auth = useDemoAuth();
-  const cart = useCart();
+  const cart = useCart(notify);
 
   /** Updates the page title and moves focus to the new main content. No inputs.
    * @returns Nothing; synchronizes the browser title and keyboard focus after navigation.
@@ -64,7 +67,14 @@ function App(_props: Props): ReactElement {
    */
   function login(email: string, password: string): boolean {
     const accepted = auth.login(email, password);
-    if (accepted) window.location.hash = 'admin';
+    if (accepted) {
+      window.location.hash = 'admin';
+      notify({ variant: 'success', message: 'Signed in to the demo dashboard.' });
+    } else
+      notify({
+        variant: 'error',
+        message: 'Email or password is incorrect. Use the demo credentials shown on the page.',
+      });
     return accepted;
   }
 
@@ -74,6 +84,15 @@ function App(_props: Props): ReactElement {
   function logout(): void {
     auth.logout();
     window.location.hash = 'login';
+    notify({ variant: 'info', message: 'Signed out of the demo.' });
+  }
+
+  /** Starts a catalog retry with immediate feedback. No inputs.
+   * @returns Nothing; publishes a retry notice and restarts the API request.
+   */
+  function retryCollection(): void {
+    notify({ variant: 'info', message: 'Collection retry started. Loading the latest products.' });
+    retry();
   }
 
   let content: ReactElement;
@@ -95,10 +114,12 @@ function App(_props: Props): ReactElement {
         catalogStatus={state.status}
         catalogError={state.status === 'error' ? state.message : null}
         storageError={demo.storageError}
-        onRetry={retry}
+        onRetry={retryCollection}
         onCreate={demo.createProduct}
         onUpdate={demo.updateProduct}
         onDelete={demo.deleteProduct}
+        onDeleteCategory={demo.deleteCategory}
+        onNotify={notify}
       />
     ) : (
       <Login onLogin={login} />
@@ -116,7 +137,7 @@ function App(_props: Props): ReactElement {
         <Products
           state={state}
           products={demo.products}
-          onRetry={retry}
+          onRetry={retryCollection}
           onAddToCart={cart.addItem}
         />
       </>
@@ -141,6 +162,7 @@ function App(_props: Props): ReactElement {
         </main>
         <StoreFooter />
       </div>
+      <ToastRegion toasts={toasts} announcement={announcement} onDismiss={dismiss} />
     </>
   );
 }
