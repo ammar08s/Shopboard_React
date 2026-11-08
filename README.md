@@ -114,7 +114,6 @@ src/
       CartProvider/                 # One cart owner above the lazy routes
       RetryablePage/                # Page Suspense + Error Boundary and fresh lazy identity on retry
       AdminPage/                    # Persistent editor with independent API-list boundaries
-      AdminProductPanel/            # Suspense-aware admin list query and feature coordination
       CheckoutPage/                 # Lazy checkout route and cart coordination
       CollectionPage/               # Lazy collection route composition and heading
       PageLoadError/                # Reload feedback for a failed page download
@@ -122,7 +121,7 @@ src/
       StoreHeader/                  # Navigation, cart count, session controls
       StoreIntro/                   # Collection introduction
       StoreFooter/                  # Store footer
-    modules/navigation/storePage.ts # Router-matched titles and catalog loading
+    modules/navigation/             # Router-matched titles, catalog demand, detail-request lifetime
   features/
     admin/
       components/
@@ -151,7 +150,7 @@ src/
       components/
         Products/                   # Request feedback and catalog composition
         catalog/                    # ProductCatalog, ProductGrid, ProductCard
-                                    # SuspendedCatalog gates browsing on the shared request cache
+                                    # CatalogRequest gates composed lists on the shared request cache
         details/                    # ProductDetails and its request-state UI
         comments/                   # ProductComments list and local form
         filtering/                  # ProductFilters, ProductToolbar
@@ -228,10 +227,10 @@ Props: none
     │   │           │   File: src/features/products/components/feedback/ProductError/ProductError.tsx
     │   │           │   Props: { message: string; onRetry: () => void }
     │   │           │   The fallback may also render ProductCatalog with saved products inside its own Error Boundary.
-    │   │           └── SuspendedCatalog [ready request]
-    │   │               File: src/features/products/components/catalog/SuspendedCatalog/SuspendedCatalog.tsx
-    │   │               Props: { products: Product[]; onAddToCart: (product: Product) => void }
-    │   │               Reads the shared cache; owns no copied catalog data.
+    │   │           └── CatalogRequest [ready request]
+    │   │               File: src/features/products/components/catalog/CatalogRequest/CatalogRequest.tsx
+    │   │               Props: { children: ReactNode }; reads the shared cache without copying catalog data.
+    │   │               Suspends pending requests and throws settled errors to RequestBoundary.
     │   │               └── ProductCatalog — src/features/products/components/catalog/ProductCatalog/ProductCatalog.tsx
     │   │                   Props: { products: Product[]; onAddToCart: (product: Product) => void }; owns filters.
     │   │                   ├── ProductFilters — src/features/products/components/filtering/ProductFilters/ProductFilters.tsx
@@ -308,10 +307,9 @@ Props: none
     │           │   ├── AdminProductList [saved local records during loading/failure]
     │           │   │   File: src/features/admin/components/AdminProductList/AdminProductList.tsx
     │           │   │   Props: ProductListProps (defined below); empty feedback only when the loaded list is empty.
-    │           │   └── AdminProductPanel [ready API request]
-    │           │       File: src/app/components/AdminProductPanel/AdminProductPanel.tsx
-    │           │       Props: ProductListProps; reads shared cache and renders AdminProductList.
-    │           │       Error fallback offers retry and saved records; an extra SectionError boundary contains list-render failures.
+    │           │   └── CatalogRequest [ready API request; same component and props as above]
+    │           │       └── AdminProductList [composed by AdminPage; Props: ProductListProps]
+    │           │   Error fallback offers retry and saved records; an extra SectionError boundary contains list-render failures.
     │           └── CategoryManager — src/features/admin/components/CategoryManager/CategoryManager.tsx
     │               Props: { products: AdminProduct[]; categories: string[]; catalogStatus: 'loading' | 'error' | 'success';
     │                        onDelete: (category: string, replacement: string) => void; onNotify: Notify }
@@ -330,9 +328,23 @@ Props: none
 
 `DashboardProps` is `{ products: AdminProduct[]; catalogStatus: 'loading' | 'error' | 'success'; storageError: string | null; renderProducts: (props: ProductListProps) => ReactNode; onCreate: (draft: AdminProductDraft) => void; onUpdate: (id: number, draft: AdminProductDraft) => void; onDelete: (id: number) => void; onDeleteCategory: (category: string, replacement: string) => void; onNotify: Notify }`. AdminPage supplies `renderProducts` to coordinate features through the application layer.
 
-`src/main.tsx` mounts `App` inside one `QueryClientProvider`, `BrowserRouter`, and React's `StrictMode`. HTML elements, fragments, hooks, and library internals are omitted. There are 44 application components including the request/page boundaries and independent admin panel.
+`src/main.tsx` mounts `App` inside one `QueryClientProvider`, `BrowserRouter`, and React's `StrictMode`. HTML elements, fragments, hooks, and library internals are omitted. There are 43 application components including the request/page boundaries and shared catalog request gate.
 
-`App` declares the `/`, `/products/:productId`, `/cart`, `/checkout`, `/login`, and `/admin` routes with React Router. An unmatched route displays a page-not-found message. `Link` and `NavLink` preserve application state during navigation; `Navigate` handles the demo session redirects. The skip link focuses the current main content without changing pages. `getStorePageTitle(pathname)` names the active route for the document title. Checkout does not fetch the catalog on a direct visit.
+`CatalogRequest` accepts children so storefront and admin can compose different lists around the same request policy. `AdminPage` supplies admin UI through this products-feature gate without introducing a direct import between features. `AdminDashboard.renderProducts` remains a callback because it passes dashboard-owned edit/delete actions to the application layer; `RequestBoundary.renderError` passes the caught error and reset action to contextual feedback.
+
+## Routes
+
+| Path                   | Page                           | Access and data                                                                                                            |
+| ---------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `/`                    | `CollectionPage`               | Public; shared catalog query merged with browser-only demo changes                                                         |
+| `/products/:productId` | `ProductDetailsPage`           | Public; independent API product query and local product comments; invalid/missing IDs show not-found feedback              |
+| `/cart`                | `Cart`                         | Public; reads the persistent cart provider without fetching the catalog                                                    |
+| `/checkout`            | `CheckoutPage`                 | Public; validated browser-only checkout or empty-cart feedback; reads the same cart provider                               |
+| `/login`               | `Login`                        | Signed-out demo users; signed-in users redirect to `/admin`                                                                |
+| `/admin`               | `AdminPage`                    | Demo session required; signed-out users redirect to `/login`; editor stays mounted while the catalog list loads or retries |
+| `*`                    | Inline page-not-found feedback | Unmatched paths; collection link remains available                                                                         |
+
+`App` composes these routes with React Router. `Link` and `NavLink` preserve application state during navigation; `Navigate` handles the demo session redirects. The skip link focuses the current main content without changing pages. `getStorePageTitle(pathname)` names the active route for the document title. Checkout does not fetch the catalog on a direct visit.
 
 `CollectionPage`, `ProductDetailsPage`, `Cart`, `CheckoutPage`, `Login`, and `AdminPage` have module-scope loader functions passed to a pathname-keyed `RetryablePage`. That component owns a stable lazy identity and combines Suspense's **Loading page…** with an Error Boundary. **Try again** recreates only that lazy identity, so failed downloads can be attempted again; **Reload page** also handles stale deployment assets. Successful module imports remain cached by the browser. `CartProvider`, header, footer, notifications, session state, and request observers stay outside the page boundary. Redirected or unopened pages do not trigger their module imports.
 

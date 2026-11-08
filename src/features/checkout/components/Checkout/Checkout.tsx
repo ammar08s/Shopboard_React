@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '../../../../shared/components/ui/Button/Button.tsx';
+import { focusElement } from '../../../../shared/modules/focus/focusElement.ts';
 import type { CheckoutItem } from '../../modules/summary/checkout.types.ts';
 import { checkoutDefaultValues, checkoutSchema } from '../../modules/validation/checkout.schema.ts';
 import type { CheckoutInput, CheckoutValues } from '../../modules/validation/checkout.schema.ts';
@@ -15,14 +16,6 @@ interface Props {
   totalCents: number;
   storageError: string | null;
   onComplete: () => void;
-}
-
-/** Moves focus to a newly mounted confirmation without adding an effect or duplicate status.
- * @param heading - Confirmation heading, or null when it unmounts.
- * @returns Nothing; focuses the heading after a successful submission.
- */
-function focusConfirmation(heading: HTMLHeadingElement | null): void {
-  heading?.focus();
 }
 
 /** Owns checkout form state and displays validation, empty-cart, submission, and success feedback.
@@ -66,7 +59,7 @@ export function Checkout({ items, totalCents, storageError, onComplete }: Props)
           ✓
         </span>
         <p className="checkout-eyebrow">ALL SET</p>
-        <h1 ref={focusConfirmation} tabIndex={-1}>
+        <h1 ref={focusElement} tabIndex={-1}>
           Demo checkout complete<span>.</span>
         </h1>
         <p>

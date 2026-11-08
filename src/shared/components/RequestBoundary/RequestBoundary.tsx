@@ -16,11 +16,24 @@ interface Props {
   onRetry?: () => void;
 }
 
+/** Renders the standard recovery controls when a section has no contextual fallback.
+ * @param props - Rejected value and the Error Boundary reset action.
+ * @returns A recovery UI that leaves surrounding content mounted.
+ */
+function renderSectionError({ resetErrorBoundary }: RequestErrorProps): ReactElement {
+  return <SectionError resetErrorBoundary={resetErrorBoundary} />;
+}
+
 /** Connects a section's Suspense loading UI to cache-aware error recovery.
  * @param props - Independent content, loading UI, optional contextual error UI, and retry action.
  * @returns Scoped loading/error boundaries whose reset starts a fresh request attempt.
  */
-export function RequestBoundary({ children, loading, renderError, onRetry }: Props): ReactElement {
+export function RequestBoundary({
+  children,
+  loading,
+  renderError = renderSectionError,
+  onRetry,
+}: Props): ReactElement {
   /** Associates this error boundary with its query reset scope.
    * @param controls - Query cache error-reset controls.
    * @returns The section's Error Boundary and nested Suspense boundary.
@@ -33,19 +46,8 @@ export function RequestBoundary({ children, loading, renderError, onRetry }: Pro
       reset();
       onRetry?.();
     }
-    /** Renders contextual feedback or the standard section fallback.
-     * @param props - Rejected value and the Error Boundary reset action.
-     * @returns A recovery UI that leaves surrounding content mounted.
-     */
-    function renderFailure(props: RequestErrorProps): ReactNode {
-      return renderError === undefined ? (
-        <SectionError resetErrorBoundary={props.resetErrorBoundary} />
-      ) : (
-        renderError(props)
-      );
-    }
     return (
-      <ErrorBoundary onReset={retry} fallbackRender={renderFailure}>
+      <ErrorBoundary onReset={retry} fallbackRender={renderError}>
         <Suspense fallback={loading}>{children}</Suspense>
       </ErrorBoundary>
     );

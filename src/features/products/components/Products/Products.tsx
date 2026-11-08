@@ -8,7 +8,7 @@ import type { Product } from '../../modules/catalog/products.types.ts';
 import { ProductCatalog } from '../catalog/ProductCatalog/ProductCatalog.tsx';
 import { ProductError } from '../feedback/ProductError/ProductError.tsx';
 import { ProductLoading } from '../loading/ProductLoading/ProductLoading.tsx';
-import { SuspendedCatalog } from '../catalog/SuspendedCatalog/SuspendedCatalog.tsx';
+import { CatalogRequest } from '../catalog/CatalogRequest/CatalogRequest.tsx';
 
 interface Props {
   products: Product[];
@@ -43,7 +43,9 @@ export function Products({ products, onRetry, onAddToCart }: Props): ReactElemen
   }
   return (
     <RequestBoundary loading={<ProductLoading />} renderError={renderFailure} onRetry={onRetry}>
-      <SuspendedCatalog products={products} onAddToCart={onAddToCart} />
+      <CatalogRequest>
+        <ProductCatalog products={products} onAddToCart={onAddToCart} />
+      </CatalogRequest>
     </RequestBoundary>
   );
 }

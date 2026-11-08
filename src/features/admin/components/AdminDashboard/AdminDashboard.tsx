@@ -33,6 +33,14 @@ export interface Props {
   onNotify: Notify;
 }
 
+/** Advances the editor key after an explicit edit or reset.
+ * @param revision - Latest committed or queued form revision.
+ * @returns The next revision, so each action resets the uncontrolled draft once.
+ */
+function nextFormRevision(revision: number): number {
+  return revision + 1;
+}
+
 /** Composes local product administration and reports demo-only changes.
  * @param props - Collection, request/storage feedback, local mutation actions, and toast callback.
  * @returns Product/category controls, persistent request feedback, and deletion confirmations.
@@ -60,7 +68,7 @@ export function AdminDashboard({
   function resetEditor(): void {
     setEditing(null);
     setEditorCategory('');
-    setFormRevision(formRevision + 1);
+    setFormRevision(nextFormRevision);
   }
 
   /** Applies the validated draft to the local collection.
@@ -83,7 +91,7 @@ export function AdminDashboard({
   function editProduct(product: AdminProduct): void {
     setEditing(product);
     setEditorCategory(product.category);
-    setFormRevision(formRevision + 1);
+    setFormRevision(nextFormRevision);
     setPendingDelete(null);
     onNotify({
       variant: 'info',
@@ -133,12 +141,23 @@ export function AdminDashboard({
    */
   function deleteCategory(category: string, replacement: string): void {
     onDeleteCategory(category, replacement);
-    setEditorCategory(replaceDeletedCategory(editorCategory, category, replacement));
-    if (editing !== null)
-      setEditing({
-        ...editing,
-        category: replaceDeletedCategory(editing.category, category, replacement),
-      });
+    /** Reconciles the latest selected category after a deletion.
+     * @param current - Latest committed or queued editor category.
+     * @returns The replacement category when the selected category was removed.
+     */
+    function reconcileCategory(current: string): string {
+      return replaceDeletedCategory(current, category, replacement);
+    }
+    /** Reconciles editing defaults without discarding the remaining product fields.
+     * @param current - Latest committed or queued product being edited, if any.
+     * @returns Updated editing defaults, or null when no product is being edited.
+     */
+    function reconcileEditing(current: AdminProduct | null): AdminProduct | null {
+      if (current === null) return null;
+      return { ...current, category: reconcileCategory(current.category) };
+    }
+    setEditorCategory(reconcileCategory);
+    setEditing(reconcileEditing);
     setPendingDelete(null);
   }
 

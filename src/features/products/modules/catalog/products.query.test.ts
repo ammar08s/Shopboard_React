@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { QueryClient } from '@tanstack/react-query';
-import { getCatalogQueryOptions, getProductQueryOptions } from './products.query.ts';
+import { catalogQueryOptions, getProductQueryOptions } from './products.query.ts';
 
 const apiProduct = {
   id: 1,
@@ -32,8 +32,8 @@ async function sharesCatalogData(context: TestContext): Promise<void> {
   context.mock.method(globalThis, 'fetch', respond);
   const client = new QueryClient();
   try {
-    const first = await client.fetchQuery(getCatalogQueryOptions());
-    const second = await client.fetchQuery(getCatalogQueryOptions());
+    const first = await client.fetchQuery(catalogQueryOptions);
+    const second = await client.fetchQuery(catalogQueryOptions);
     assert.equal(first, second);
     assert.deepEqual(first, [
       { id: 1, title: 'Tote', category: 'Bags', priceCents: 8900, inStock: true },
@@ -70,9 +70,9 @@ async function retriesFailedRequests(context: TestContext): Promise<void> {
   context.mock.method(globalThis, 'fetch', respond);
   const client = new QueryClient();
   try {
-    await assert.rejects(client.fetchQuery(getCatalogQueryOptions()), /500/);
+    await assert.rejects(client.fetchQuery(catalogQueryOptions), /500/);
     assert.equal(requests, 1);
-    assert.deepEqual(await client.fetchQuery(getCatalogQueryOptions()), []);
+    assert.deepEqual(await client.fetchQuery(catalogQueryOptions), []);
     assert.equal(await client.fetchQuery(getProductQueryOptions(null)), null);
     assert.equal(requests, 2);
   } finally {

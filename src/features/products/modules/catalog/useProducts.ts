@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCatalogQueryOptions, catalogQueryKey } from './products.query.ts';
+import { catalogQueryOptions } from './products.query.ts';
 import { getErrorMessage } from '../../../../shared/modules/errors/errors.ts';
 import type { Product } from './products.types.ts';
 
@@ -15,7 +15,7 @@ export type CatalogState =
  */
 export function useProducts(enabled: boolean = true): { state: CatalogState; retry: () => void } {
   const client = useQueryClient();
-  const query = useQuery({ ...getCatalogQueryOptions(), enabled });
+  const query = useQuery({ ...catalogQueryOptions, enabled });
   /** Ties the catalog transport to routes that need it. No inputs.
    * @returns Request cancellation when an enabled catalog route is left.
    */
@@ -25,7 +25,7 @@ export function useProducts(enabled: boolean = true): { state: CatalogState; ret
      * @returns Nothing; cancels the transport as the last catalog route leaves.
      */
     function cancelRequest(): void {
-      void client.cancelQueries({ queryKey: catalogQueryKey });
+      void client.cancelQueries({ queryKey: catalogQueryOptions.queryKey });
     }
     return cancelRequest;
   }

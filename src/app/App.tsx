@@ -13,12 +13,18 @@ import { ToastRegion } from '../shared/components/ToastRegion/ToastRegion.tsx';
 import { useToasts } from '../shared/modules/toasts/useToasts.ts';
 import { RetryablePage } from './components/RetryablePage/RetryablePage.tsx';
 import { useProductRequestLifetime } from './modules/navigation/useProductRequestLifetime.ts';
+import type { CollectionPage } from './components/CollectionPage/CollectionPage.tsx';
+import type { ProductDetailsPage } from './components/ProductDetailsPage/ProductDetailsPage.tsx';
+import type { Cart } from '../features/cart/components/Cart/Cart.tsx';
+import type { CheckoutPage } from './components/CheckoutPage/CheckoutPage.tsx';
+import type { Login } from '../features/admin/components/Login/Login.tsx';
+import type { AdminPage } from './components/AdminPage/AdminPage.tsx';
 import './App.css';
 
 /** Loads collection composition only when its route renders. No inputs.
  * @returns A promise exposing the collection page as the lazy component.
  */
-async function loadCollectionPage() {
+async function loadCollectionPage(): Promise<{ default: typeof CollectionPage }> {
   const page = await import('./components/CollectionPage/CollectionPage.tsx');
   return { default: page.CollectionPage };
 }
@@ -26,7 +32,7 @@ async function loadCollectionPage() {
 /** Loads product details and comments only when a product route renders. No inputs.
  * @returns A promise exposing the product detail page as the lazy component.
  */
-async function loadProductDetails() {
+async function loadProductDetails(): Promise<{ default: typeof ProductDetailsPage }> {
   const page = await import('./components/ProductDetailsPage/ProductDetailsPage.tsx');
   return { default: page.ProductDetailsPage };
 }
@@ -34,7 +40,7 @@ async function loadProductDetails() {
 /** Loads cart UI only when the cart route renders. No inputs.
  * @returns A promise exposing the cart page as the lazy component.
  */
-async function loadCartPage() {
+async function loadCartPage(): Promise<{ default: typeof Cart }> {
   const page = await import('../features/cart/components/Cart/Cart.tsx');
   return { default: page.Cart };
 }
@@ -42,7 +48,7 @@ async function loadCartPage() {
 /** Loads checkout and its form libraries only when the checkout route renders. No inputs.
  * @returns A promise exposing checkout composition as the lazy component.
  */
-async function loadCheckoutPage() {
+async function loadCheckoutPage(): Promise<{ default: typeof CheckoutPage }> {
   const page = await import('./components/CheckoutPage/CheckoutPage.tsx');
   return { default: page.CheckoutPage };
 }
@@ -50,7 +56,7 @@ async function loadCheckoutPage() {
 /** Loads the sign-in form only when the login route renders. No inputs.
  * @returns A promise exposing the login page as the lazy component.
  */
-async function loadLoginPage() {
+async function loadLoginPage(): Promise<{ default: typeof Login }> {
   const page = await import('../features/admin/components/Login/Login.tsx');
   return { default: page.Login };
 }
@@ -58,7 +64,7 @@ async function loadLoginPage() {
 /** Loads administration UI only when its authenticated route renders. No inputs.
  * @returns A promise exposing the dashboard as the lazy component.
  */
-async function loadAdminDashboard() {
+async function loadAdminDashboard(): Promise<{ default: typeof AdminPage }> {
   const page = await import('./components/AdminPage/AdminPage.tsx');
   return { default: page.AdminPage };
 }

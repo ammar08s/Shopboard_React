@@ -143,6 +143,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 - Apply `code-simplifier` to touched code during implementation and final review, preserving behavior and the required function documentation.
 
 - Use function components and follow the Rules of Hooks.
+- Prefer children for composing UI structure. Use render callbacks when the caller needs data or actions owned by the child, such as dashboard list actions or Error Boundary reset controls. Consolidate repeated request gating through composition instead of adding boolean modes or duplicate wrappers.
 - Use React Router for route composition, route parameters, and internal navigation. Keep application routes in `src/app/` and route-specific UI and data access in the owning feature.
 - Declare route module loaders at module scope. `RetryablePage` owns a stable lazy component and recreates it only after an explicit retry, so a rejected import is not permanently cached. Keep shared application UI and persistent state outside page loading/error boundaries.
 - Use Suspense-aware queries inside local `RequestBoundary` sections for API loading and retryable errors. The application QueryClient is the sole API-data owner; derive status and merged products without copying cached data into state. Keep editors and unrelated sections outside request boundaries. Expected empty/not-found/no-match results are ordinary UI, not exceptions. Let unexpected render failures reach the nearest Error Boundary.
@@ -152,6 +153,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 - Keep state close to where it is used. Lift it only when consumers need to share it.
 - Keep the cart in the application-level `CartProvider` above the route loading boundary. Read it through the cart feature's `useCart()` consumer and change it only through provider actions. Keep product-to-cart coordination in application components so features do not import each other. Component-local state stays local.
 - Every piece of state must have one owner and one copy. Anything that can be calculated from existing state or props is derived data, not state. Calculate it during rendering instead of storing or synchronizing a separate copy.
+- Use functional state setters when an update depends on the previous value, so queued actions use the latest state. Keep updater functions pure; persistence and notifications belong in event handlers.
 - React Hook Form owns checkout field values, touched state, errors, and submission status. Keep all checkout validation and normalization in one Zod schema connected through `zodResolver`; do not duplicate rules in components or registration options. Keep form state local and coordinate checkout with cart actions through the application layer.
 - Never mutate React state directly. Use stable identifiers for list keys.
 - Extract custom hooks when stateful behavior has a clear independent responsibility; do not add hooks solely to wrap a single trivial expression.
@@ -164,6 +166,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 - Expose clearly named operations such as `getProducts`, `createProduct`, `updateProduct`, and `deleteProduct`, with typed inputs and outputs.
 - Validate response data at the data boundary and map backend models to frontend models when necessary.
 - Keep HTTP concerns in the client and business rules in feature logic.
+- Define shared query keys and request policy in the owning feature module. Reuse stable query options when they have no inputs; create options only for parameterized requests. Consumers must share cache entries rather than duplicate API data or retry policy.
 - Handle failed requests explicitly. Provide appropriate loading, error, empty, and success states in the UI.
 - Prevent duplicate submissions while mutations are pending and handle stale or cancelled requests when relevant.
 - Read deployment-specific configuration from environment variables. Never put secrets in frontend code or frontend environment variables.

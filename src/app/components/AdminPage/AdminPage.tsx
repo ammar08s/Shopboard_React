@@ -10,7 +10,7 @@ import { AdminProductList } from '../../../features/admin/components/AdminProduc
 import { RequestBoundary } from '../../../shared/components/RequestBoundary/RequestBoundary.tsx';
 import type { RequestErrorProps } from '../../../shared/components/RequestBoundary/RequestBoundary.tsx';
 import { getErrorMessage } from '../../../shared/modules/errors/errors.ts';
-import { AdminProductPanel } from '../AdminProductPanel/AdminProductPanel.tsx';
+import { CatalogRequest } from '../../../features/products/components/catalog/CatalogRequest/CatalogRequest.tsx';
 import './AdminPage.css';
 
 interface Props extends Omit<DashboardProps, 'renderProducts'> {
@@ -65,7 +65,9 @@ export function AdminPage({ onRetry, ...props }: Props): ReactElement {
             </>
           }
         >
-          <AdminProductPanel {...listProps} />
+          <CatalogRequest>
+            <AdminProductList {...listProps} />
+          </CatalogRequest>
         </RequestBoundary>
       </section>
     );
