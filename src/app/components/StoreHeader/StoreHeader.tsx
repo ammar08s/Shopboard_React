@@ -1,16 +1,17 @@
 import type { ReactElement } from 'react';
 import { Link, NavLink } from 'react-router';
+import { useCart } from '../../../features/cart/modules/cart/useCart.ts';
 
 import './StoreHeader.css';
 
 interface Props {
-  cartCount: number;
   signedIn: boolean;
   onLogout: () => void;
 }
 
-/** Displays store identity and router navigation with cart and demo session controls. @param props - Cart quantity, demo session, and logout action. @returns Store header. */
-export function StoreHeader({ cartCount, signedIn, onLogout }: Props): ReactElement {
+/** Displays navigation with the shared cart count and demo session controls. @param props - Demo session and logout action. @returns Store header. */
+export function StoreHeader({ signedIn, onLogout }: Props): ReactElement {
+  const { itemCount } = useCart();
   return (
     <header className="store-header">
       <Link className="store-brand" to="/" aria-label="ShopBoard home">
@@ -24,7 +25,7 @@ export function StoreHeader({ cartCount, signedIn, onLogout }: Props): ReactElem
           The collection <span aria-hidden="true">↗</span>
         </NavLink>
         <NavLink to="/cart">
-          Cart <span className="store-cart-count">{cartCount}</span>
+          Cart <span className="store-cart-count">{itemCount}</span>
         </NavLink>
         <NavLink to={signedIn ? '/admin' : '/login'}>
           {signedIn ? 'Dashboard' : 'Admin login'}

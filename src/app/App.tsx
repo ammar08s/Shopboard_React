@@ -1,23 +1,68 @@
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
-import { AdminDashboard } from '../features/admin/components/AdminDashboard/AdminDashboard.tsx';
-import { Login } from '../features/admin/components/Login/Login.tsx';
 import { useDemoAuth } from '../features/admin/modules/session/useDemoAuth.ts';
-import { Cart } from '../features/cart/components/Cart/Cart.tsx';
-import { useCart } from '../features/cart/modules/cart/useCart.ts';
-import { Products } from '../features/products/components/Products/Products.tsx';
-import { ProductDetails } from '../features/products/components/details/ProductDetails/ProductDetails.tsx';
 import type { Product } from '../features/products/modules/catalog/products.types.ts';
 import { useProducts } from '../features/products/modules/catalog/useProducts.ts';
 import { useDemoCatalog } from '../features/products/modules/demo/useDemoCatalog.ts';
 import { StoreFooter } from './components/StoreFooter/StoreFooter.tsx';
 import { StoreHeader } from './components/StoreHeader/StoreHeader.tsx';
-import { StoreIntro } from './components/StoreIntro/StoreIntro.tsx';
+import { CartProvider } from './components/CartProvider/CartProvider.tsx';
 import { getStorePageTitle, needsProductCatalog } from './modules/navigation/storePage.ts';
 import { ToastRegion } from '../shared/components/ToastRegion/ToastRegion.tsx';
 import { useToasts } from '../shared/modules/toasts/useToasts.ts';
+import { lazyPage } from './lazyPage.ts';
 import './App.css';
+
+const CollectionPage = lazyPage(
+  /** Loads collection composition only when its route renders. No inputs.
+   * @returns A promise exposing the collection page as the lazy component.
+   */
+  async function loadCollectionPage() {
+    const page = await import('./components/CollectionPage/CollectionPage.tsx');
+    return { default: page.CollectionPage };
+  },
+);
+
+const ProductDetailsPage = lazyPage(
+  /** Loads product details and comments only when a product route renders. No inputs.
+   * @returns A promise exposing the product detail page as the lazy component.
+   */
+  async function loadProductDetails() {
+    const page = await import('./components/ProductDetailsPage/ProductDetailsPage.tsx');
+    return { default: page.ProductDetailsPage };
+  },
+);
+
+const Cart = lazyPage(
+  /** Loads cart UI only when the cart route renders. No inputs.
+   * @returns A promise exposing the cart page as the lazy component.
+   */
+  async function loadCartPage() {
+    const page = await import('../features/cart/components/Cart/Cart.tsx');
+    return { default: page.Cart };
+  },
+);
+
+const Login = lazyPage(
+  /** Loads the sign-in form only when the login route renders. No inputs.
+   * @returns A promise exposing the login page as the lazy component.
+   */
+  async function loadLoginPage() {
+    const page = await import('../features/admin/components/Login/Login.tsx');
+    return { default: page.Login };
+  },
+);
+
+const AdminDashboard = lazyPage(
+  /** Loads administration UI only when its authenticated route renders. No inputs.
+   * @returns A promise exposing the dashboard as the lazy component.
+   */
+  async function loadAdminDashboard() {
+    const page = await import('../features/admin/components/AdminDashboard/AdminDashboard.tsx');
+    return { default: page.AdminDashboard };
+  },
+);
 
 interface Props {
   children?: never;
@@ -40,7 +85,6 @@ function App(_props: Props): ReactElement {
   const { toasts, announcement, notify, dismiss } = useToasts();
   const demo = useDemoCatalog(state.status === 'success' ? state.products : emptyProducts, notify);
   const auth = useDemoAuth();
-  const cart = useCart(notify);
 
   /** Updates the page title and moves focus to the new main content. No inputs.
    * @returns Nothing; synchronizes the browser title and keyboard focus after navigation.
@@ -96,93 +140,82 @@ function App(_props: Props): ReactElement {
   }
 
   return (
-    <>
+    <CartProvider notify={notify}>
       <a className="store-skip" href="#main-content" onClick={skipToContent}>
         Skip to content
       </a>
       <div className="store-announcement">Good things. Everyday essentials. All in one place.</div>
       <div className="store-shell">
-        <StoreHeader cartCount={cart.itemCount} signedIn={auth.signedIn} onLogout={logout} />
+        <StoreHeader signedIn={auth.signedIn} onLogout={logout} />
         <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <StoreIntro />
-                  <div id="collection" className="store-collection-heading">
-                    <h2>
-                      The collection<span>.</span>
-                    </h2>
-                    <span>YOUR NEXT GOOD FIND STARTS HERE</span>
-                  </div>
-                  <Products
+          <Suspense
+            key={location.pathname}
+            fallback={
+              <p className="store-page-loading" role="status">
+                Loading page…
+              </p>
+            }
+          >
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <CollectionPage
                     state={state}
                     products={demo.products}
                     onRetry={retryCollection}
-                    onAddToCart={cart.addItem}
                   />
-                </>
-              }
-            />
-            <Route
-              path="/products/:productId"
-              element={<ProductDetails key={location.pathname} onAddToCart={cart.addItem} />}
-            />
-            <Route
-              path="/cart"
-              element={
-                <Cart
-                  items={cart.items}
-                  totalCents={cart.totalCents}
-                  storageError={cart.storageError}
-                  onQuantityChange={cart.updateQuantity}
-                  onRemove={cart.removeItem}
-                  onClear={cart.clearCart}
-                />
-              }
-            />
-            <Route
-              path="/login"
-              element={auth.signedIn ? <Navigate to="/admin" replace /> : <Login onLogin={login} />}
-            />
-            <Route
-              path="/admin"
-              element={
-                auth.signedIn ? (
-                  <AdminDashboard
-                    products={demo.products}
-                    catalogStatus={state.status}
-                    catalogError={state.status === 'error' ? state.message : null}
-                    storageError={demo.storageError}
-                    onRetry={retryCollection}
-                    onCreate={demo.createProduct}
-                    onUpdate={demo.updateProduct}
-                    onDelete={demo.deleteProduct}
-                    onDeleteCategory={demo.deleteCategory}
-                    onNotify={notify}
-                  />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }
-            />
-            <Route
-              path="*"
-              element={
-                <section className="store-not-found">
-                  <h1>Page not found</h1>
-                  <p>This link doesn’t lead to a ShopBoard page.</p>
-                  <Link to="/">Back to the collection</Link>
-                </section>
-              }
-            />
-          </Routes>
+                }
+              />
+              <Route
+                path="/products/:productId"
+                element={<ProductDetailsPage key={location.pathname} />}
+              />
+              <Route path="/cart" element={<Cart />} />
+              <Route
+                path="/login"
+                element={
+                  auth.signedIn ? <Navigate to="/admin" replace /> : <Login onLogin={login} />
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  auth.signedIn ? (
+                    <AdminDashboard
+                      products={demo.products}
+                      catalogStatus={state.status}
+                      catalogError={state.status === 'error' ? state.message : null}
+                      storageError={demo.storageError}
+                      onRetry={retryCollection}
+                      onCreate={demo.createProduct}
+                      onUpdate={demo.updateProduct}
+                      onDelete={demo.deleteProduct}
+                      onDeleteCategory={demo.deleteCategory}
+                      onNotify={notify}
+                    />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <section className="store-not-found">
+                    <h1>Page not found</h1>
+                    <p>This link doesn’t lead to a ShopBoard page.</p>
+                    <Link to="/">Back to the collection</Link>
+                  </section>
+                }
+              />
+            </Routes>
+          </Suspense>
         </main>
         <StoreFooter />
       </div>
       <ToastRegion toasts={toasts} announcement={announcement} onDismiss={dismiss} />
-    </>
+    </CartProvider>
   );
 }
 

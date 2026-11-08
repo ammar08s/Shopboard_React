@@ -20,6 +20,7 @@ The storefront includes product details, a browser-only admin demo, and a shoppi
 - Provide loading feedback, a retryable request/validation error, and a distinct not-found state for HTTP 404 or invalid IDs. Accept only canonical positive safe-integer IDs. Cancel requests when the route changes or unmounts so stale results cannot replace the current product.
 - Details show the API record. Browser-only demo products use negative IDs and have no API detail route; their existing card and cart controls remain available.
 - Preserve cart, demo session, and notifications during client-side navigation. Production hosting must serve `index.html` for application routes so direct links and refresh work.
+- Load collection, product detail, cart, login, and dashboard UI with route-level dynamic imports on their first visit. Show page-loading feedback while a module downloads, cache loaded modules for later visits, and keep the shared shell and persistent state mounted outside that loading boundary. A failed module download must show an explicit reload action instead of removing the application.
 
 ## Demo product comments
 
@@ -31,7 +32,7 @@ The storefront includes product details, a browser-only admin demo, and a shoppi
 
 ## Demo administration and cart
 
-- Keep React, TypeScript, Vite, React Router, plain CSS, and the existing feature boundaries. Coordinate features through `App` and explicit props.
+- Keep React, TypeScript, Vite, React Router, plain CSS, and the existing feature boundaries. Coordinate features through the application layer and explicit props. Keep the cart in one application-level Context provider above the lazy route boundary; consumers read its state and call its actions through `useCart()`. Product route composition connects product UI to cart actions without direct imports between features. Context uses the existing React stack without another state dependency.
 - Use router links for the collection, cart, login, dashboard, and notification actions so navigation preserves application state and browser history.
 - Show demo credentials on the login page: `admin@shopboard.demo` / `Admin123!`. Reject invalid credentials; keep the demo session in sessionStorage and provide logout. This is a simulated UI gate, not real authentication or authorization.
 - Admins can read, create, edit, and delete products. Validate trimmed titles/categories and nonnegative USD prices with at most two decimal places; allow stock changes and confirm deletion. Show actionable errors and success feedback.

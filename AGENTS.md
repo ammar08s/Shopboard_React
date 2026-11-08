@@ -144,9 +144,11 @@ function searchProducts(products: Product[], query: string): Product[] {
 
 - Use function components and follow the Rules of Hooks.
 - Use React Router for route composition, route parameters, and internal navigation. Keep application routes in `src/app/` and route-specific UI and data access in the owning feature.
+- Declare lazy route imports at module scope and provide a Suspense loading state plus recoverable feedback for failed imports. Keep shared application UI and persistent state outside the route loading boundary.
 - Keep rendering pure. Perform user-triggered work in event handlers and use effects for synchronization with external systems.
 - Start with React's built-in state tools. Add a state library only when a concrete need justifies it.
 - Keep state close to where it is used. Lift it only when consumers need to share it.
+- Keep the cart in the application-level `CartProvider` above the route loading boundary. Read it through the cart feature's `useCart()` consumer and change it only through provider actions. Keep product-to-cart coordination in application components so features do not import each other. Component-local state stays local.
 - Derive values from existing state instead of storing duplicate state.
 - Never mutate React state directly. Use stable identifiers for list keys.
 - Extract custom hooks when stateful behavior has a clear independent responsibility; do not add hooks solely to wrap a single trivial expression.

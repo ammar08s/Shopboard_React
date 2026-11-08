@@ -1,0 +1,20 @@
+.store-page-error {
+  padding: 48px 0;
+  min-height: 300px;
+}
+.store-page-error h1 {
+  font:
+    600 28px Manrope,
+    sans-serif;
+}
+.store-page-error p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.store-page-error button {
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  padding: 12px 20px;
+  background: var(--green);
+  color: white;
+}

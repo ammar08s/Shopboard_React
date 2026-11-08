@@ -1,0 +1,29 @@
+.store-collection-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 22px 0;
+  scroll-margin-top: 20px;
+}
+.store-collection-heading h2 {
+  font:
+    600 25px Manrope,
+    sans-serif;
+  letter-spacing: -1px;
+  margin: 0;
+}
+.store-collection-heading h2 span {
+  color: var(--green);
+}
+.store-collection-heading > span {
+  display: none;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  color: var(--muted);
+}
+@media (min-width: 600px) {
+  .store-collection-heading > span {
+    display: inline;
+  }
+}

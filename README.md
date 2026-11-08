@@ -1,4 +1,4 @@
-﻿# ShopBoard
+# ShopBoard
 
 A React and TypeScript storefront built with Vite and plain CSS for the Corehub Istanbul software engineering course. Browse and filter the API collection, save products to a cart, and try product management in a local admin demo.
 
@@ -98,8 +98,13 @@ Each feature separates UI in `components/` from non-UI responsibilities in `modu
 src/
   app/
     App.tsx                         # Composition and cross-feature coordination
-    App.css                         # Shell and collection heading
+    App.css                         # Shell, route loading, and unmatched-route feedback
+    lazyPage.ts                     # Typed lazy imports with page-download recovery
     components/
+      CartProvider/                 # One cart owner above the lazy routes
+      CollectionPage/               # Lazy collection route composition and heading
+      PageLoadError/                # Reload feedback for a failed page download
+      ProductDetailsPage/           # Lazy product route and cart coordination
       StoreHeader/                  # Navigation, cart count, session controls
       StoreIntro/                   # Collection introduction
       StoreFooter/                  # Store footer
@@ -119,7 +124,7 @@ src/
       components/
         Cart/                       # Empty/populated cart and subtotal
         CartLine/                   # Quantity and removal controls
-      modules/cart/                 # Cart rules, types, storage, price, state hook
+      modules/cart/                 # Cart rules, types, storage, price, context, state/consumer hooks
     products/
       components/
         Products/                   # Request feedback and catalog composition
@@ -147,116 +152,129 @@ src/
   main.tsx                          # Global styles and React mounting
 ```
 
-Import files directly; there are no re-export barrels. Product-specific shared feedback and skeleton CSS live in `components/feedback/productFeedback.css` and `components/loading/productSkeleton.css`. Every other component stylesheet is colocated. No feature imports another feature. Admin and cart own structural product contracts; `App` passes compatible catalog values and callbacks between features.
+Import files directly; there are no re-export barrels. Product-specific shared feedback and skeleton CSS live in `components/feedback/productFeedback.css` and `components/loading/productSkeleton.css`. Every other component stylesheet is colocated. No feature imports another feature. Admin and cart own structural product contracts; the application layer passes compatible catalog values and callbacks between features. `CartProvider` owns the cart through `useCartState(notify)` and exposes it through the cart feature's context. `useCart()` reads that shared instance and reports a missing provider. Collection and product route composition forward the provider's add action to product UI.
 
 ## Component tree
 
-This tree includes every component file, its configurable props, and conditional mounting. Each file declares a typed `Props` interface. `none` means `{ children?: never }`. React Router's provider and routing primitives are omitted. Types and callback signatures follow the tree.
+This tree includes every component file, its configurable props, and conditional mounting. Each file declares a typed `Props` interface. `none` means no configurable props. React Router's provider and routing primitives are omitted. Types and callback signatures follow the tree.
 
 ```text
 App — src/app/App.tsx
 Props: none
-├── StoreHeader — src/app/components/StoreHeader/StoreHeader.tsx
-│   Props: { cartCount: number; signedIn: boolean; onLogout: () => void }
-├── StoreIntro [collection page]
-│   File: src/app/components/StoreIntro/StoreIntro.tsx
-│   Props: none
-├── Products [collection page]
-│   File: src/features/products/components/Products/Products.tsx
-│   Props: { state: CatalogState; products: Product[]; onRetry: () => void;
-│            onAddToCart: (product: Product) => void }
-│   ├── ProductLoading [loading only]
-│   │   File: src/features/products/components/loading/ProductLoading/ProductLoading.tsx
-│   │   Props: none
-│   │   ├── ProductFiltersSkeleton
-│   │   │   File: src/features/products/components/loading/ProductFiltersSkeleton/ProductFiltersSkeleton.tsx
-│   │   │   Props: none
-│   │   └── ProductCardSkeleton [six stable placeholder slots]
-│   │       File: src/features/products/components/loading/ProductCardSkeleton/ProductCardSkeleton.tsx
-│   │       Props: none
-│   ├── ProductError [error only]
-│   │   File: src/features/products/components/feedback/ProductError/ProductError.tsx
-│   │   Props: { message: string; onRetry: () => void }
-│   └── ProductCatalog [success, or error with saved local products]
-│       File: src/features/products/components/catalog/ProductCatalog/ProductCatalog.tsx
-│       Props: { products: Product[]; onAddToCart: (product: Product) => void }
-│       ├── ProductFilters
-│       │   File: src/features/products/components/filtering/ProductFilters/ProductFilters.tsx
-│       │   Props: { filters: ProductFilters; categories: string[];
-│       │            onChange: (filters: ProductFilters) => void; onReset: () => void }
-│       ├── ProductToolbar
-│       │   File: src/features/products/components/filtering/ProductToolbar/ProductToolbar.tsx
-│       │   Props: { matchingCount: number; totalCount: number; sort: SortOrder;
-│       │            onSortChange: (value: string) => void }
-│       ├── ProductGrid [one or more matches]
-│       │   File: src/features/products/components/catalog/ProductGrid/ProductGrid.tsx
-│       │   Props: { products: Product[]; onAddToCart: (product: Product) => void }
-│       │   └── ProductCard [one per matching product; key: product.id]
-│       │       File: src/features/products/components/catalog/ProductCard/ProductCard.tsx
-│       │       Props: { product: Product; onAddToCart: (product: Product) => void }
-│       └── ProductEmptyState [no matches, including an empty catalog]
-│           File: src/features/products/components/feedback/ProductEmptyState/ProductEmptyState.tsx
-│           Props: { totalCount: number; onReset: () => void }
-├── ProductDetails [/products/:productId; key: pathname]
-│   File: src/features/products/components/details/ProductDetails/ProductDetails.tsx
-│   Props: { onAddToCart: (product: Product) => void }
-│   Loading, retryable error, not-found, and loaded content are mutually exclusive.
-│   └── ProductComments [loaded product only; key: product.id]
-│       File: src/features/products/components/comments/ProductComments/ProductComments.tsx
-│       Props: { productId: number }
-│       Empty message or comment list; validation, storage, and submission feedback are conditional.
-├── Cart [/cart]
-│   File: src/features/cart/components/Cart/Cart.tsx
-│   Props: { items: CartItem[]; totalCents: number; storageError: string | null;
-│            onQuantityChange: (productId: number, quantity: number) => void;
-│            onRemove: (productId: number) => void; onClear: () => void }
-│   └── CartLine [one per saved product; key: item.id; absent when empty]
-│       File: src/features/cart/components/CartLine/CartLine.tsx
-│       Props: { item: CartItem; onQuantityChange: (productId: number, quantity: number) => void;
-│                onRemove: (productId: number) => void }
-├── Login [/login while signed out; /admin redirects here when signed out]
-│   File: src/features/admin/components/Login/Login.tsx
-│   Props: { onLogin: (email: string, password: string) => boolean }
-├── AdminDashboard [/admin while signed in; /login redirects here when signed in]
-│   File: src/features/admin/components/AdminDashboard/AdminDashboard.tsx
-│   Props: { products: AdminProduct[]; catalogStatus: 'loading' | 'error' | 'success';
-│            catalogError: string | null; storageError: string | null; onRetry: () => void;
-│            onCreate: (draft: AdminProductDraft) => void;
-│            onUpdate: (id: number, draft: AdminProductDraft) => void;
-│            onDelete: (id: number) => void;
-│            onDeleteCategory: (category: string, replacement: string) => void;
-│            onNotify: Notify }
-│   ├── ProductEditor [key: formRevision; remounts when saving, editing, or cancelling]
-│   │   File: src/features/admin/components/ProductEditor/ProductEditor.tsx
-│   │   Props: { product: AdminProduct | null; categories: string[];
-│   │            category: string; onCategoryChange: (category: string) => void;
-│   │            onSave: (draft: AdminProductDraft) => void;
-│   │            onCancel: () => void; onNotify: Notify }
-│   ├── AdminProductList
-│   │   File: src/features/admin/components/AdminProductList/AdminProductList.tsx
-│   │   Props: { products: AdminProduct[]; onEdit: (product: AdminProduct) => void;
-│   │            onRequestDelete: (product: AdminProduct) => void }
-│   └── CategoryManager
-│       File: src/features/admin/components/CategoryManager/CategoryManager.tsx
-│       Props: { products: AdminProduct[]; categories: string[];
-│                catalogStatus: 'loading' | 'error' | 'success';
-│                onDelete: (category: string, replacement: string) => void; onNotify: Notify }
-│       Confirmation form mounts only while pendingCategory is selected.
-├── StoreFooter — src/app/components/StoreFooter/StoreFooter.tsx
-│   Props: none
-└── ToastRegion [always mounted across pages]
-    File: src/shared/components/ToastRegion/ToastRegion.tsx
-    Props: { toasts: ToastMessage[]; announcement: ToastMessage | null;
-             onDismiss: (id: number) => void }
-    └── Toast [one per queued message; key: toast.id; absent when queue is empty]
-        File: src/shared/components/Toast/Toast.tsx
-        Props: { toast: ToastMessage; onDismiss: (id: number) => void }
-        Action link renders only when toast.action is provided.
+└── CartProvider [always mounted above the shell and lazy routes]
+    File: src/app/components/CartProvider/CartProvider.tsx
+    Props: { children: ReactNode; notify: Notify }
+    ├── StoreHeader — src/app/components/StoreHeader/StoreHeader.tsx
+    │   Props: { signedIn: boolean; onLogout: () => void }; reads cart count with useCart().
+    ├── PageLoadError [the requested page import fails]
+    │   File: src/app/components/PageLoadError/PageLoadError.tsx
+    │   Props: none; forwarded page props are ignored.
+    ├── CollectionPage [/; lazy]
+    │   File: src/app/components/CollectionPage/CollectionPage.tsx
+    │   Props: { state: CatalogState; products: Product[]; onRetry: () => void }
+    │   Reads the add action with useCart() and supplies it to Products.
+    │   ├── StoreIntro [collection page]
+    │   │   File: src/app/components/StoreIntro/StoreIntro.tsx
+    │   │   Props: none
+    │   └── Products
+    │       File: src/features/products/components/Products/Products.tsx
+    │       Props: { state: CatalogState; products: Product[]; onRetry: () => void;
+    │                onAddToCart: (product: Product) => void }
+    │       ├── ProductLoading [loading only]
+    │       │   File: src/features/products/components/loading/ProductLoading/ProductLoading.tsx
+    │       │   Props: none
+    │       │   ├── ProductFiltersSkeleton
+    │       │   │   File: src/features/products/components/loading/ProductFiltersSkeleton/ProductFiltersSkeleton.tsx
+    │       │   │   Props: none
+    │       │   └── ProductCardSkeleton [six stable placeholder slots]
+    │       │       File: src/features/products/components/loading/ProductCardSkeleton/ProductCardSkeleton.tsx
+    │       │       Props: none
+    │       ├── ProductError [error only]
+    │       │   File: src/features/products/components/feedback/ProductError/ProductError.tsx
+    │       │   Props: { message: string; onRetry: () => void }
+    │       └── ProductCatalog [success, or error with saved local products]
+    │           File: src/features/products/components/catalog/ProductCatalog/ProductCatalog.tsx
+    │           Props: { products: Product[]; onAddToCart: (product: Product) => void }
+    │           ├── ProductFilters
+    │           │   File: src/features/products/components/filtering/ProductFilters/ProductFilters.tsx
+    │           │   Props: { filters: ProductFilters; categories: string[];
+    │           │            onChange: (filters: ProductFilters) => void; onReset: () => void }
+    │           ├── ProductToolbar
+    │           │   File: src/features/products/components/filtering/ProductToolbar/ProductToolbar.tsx
+    │           │   Props: { matchingCount: number; totalCount: number; sort: SortOrder;
+    │           │            onSortChange: (value: string) => void }
+    │           ├── ProductGrid [one or more matches]
+    │           │   File: src/features/products/components/catalog/ProductGrid/ProductGrid.tsx
+    │           │   Props: { products: Product[]; onAddToCart: (product: Product) => void }
+    │           │   └── ProductCard [one per matching product; key: product.id]
+    │           │       File: src/features/products/components/catalog/ProductCard/ProductCard.tsx
+    │           │       Props: { product: Product; onAddToCart: (product: Product) => void }
+    │           └── ProductEmptyState [no matches, including an empty catalog]
+    │               File: src/features/products/components/feedback/ProductEmptyState/ProductEmptyState.tsx
+    │               Props: { totalCount: number; onReset: () => void }
+    ├── ProductDetailsPage [/products/:productId; lazy; key: pathname]
+    │   File: src/app/components/ProductDetailsPage/ProductDetailsPage.tsx
+    │   Props: none; reads the add action with useCart().
+    │   └── ProductDetails
+    │       File: src/features/products/components/details/ProductDetails/ProductDetails.tsx
+    │       Props: { onAddToCart: (product: Product) => void }
+    │       Loading, retryable error, not-found, and loaded content are mutually exclusive.
+    │       └── ProductComments [loaded product only; key: product.id]
+    │           File: src/features/products/components/comments/ProductComments/ProductComments.tsx
+    │           Props: { productId: number }
+    │           Empty message or comment list; validation, storage, and submission feedback are conditional.
+    ├── Cart [/cart; lazy]
+    │   File: src/features/cart/components/Cart/Cart.tsx
+    │   Props: none; reads cart state and mutation actions with useCart().
+    │   └── CartLine [one per saved product; key: item.id; absent when empty]
+    │       File: src/features/cart/components/CartLine/CartLine.tsx
+    │       Props: { item: CartItem; onQuantityChange: (productId: number, quantity: number) => void;
+    │                onRemove: (productId: number) => void }
+    ├── Login [/login while signed out; /admin redirects here when signed out]
+    │   File: src/features/admin/components/Login/Login.tsx
+    │   Props: { onLogin: (email: string, password: string) => boolean }
+    ├── AdminDashboard [/admin while signed in; /login redirects here when signed in]
+    │   File: src/features/admin/components/AdminDashboard/AdminDashboard.tsx
+    │   Props: { products: AdminProduct[]; catalogStatus: 'loading' | 'error' | 'success';
+    │            catalogError: string | null; storageError: string | null; onRetry: () => void;
+    │            onCreate: (draft: AdminProductDraft) => void;
+    │            onUpdate: (id: number, draft: AdminProductDraft) => void;
+    │            onDelete: (id: number) => void;
+    │            onDeleteCategory: (category: string, replacement: string) => void;
+    │            onNotify: Notify }
+    │   ├── ProductEditor [key: formRevision; remounts when saving, editing, or cancelling]
+    │   │   File: src/features/admin/components/ProductEditor/ProductEditor.tsx
+    │   │   Props: { product: AdminProduct | null; categories: string[];
+    │   │            category: string; onCategoryChange: (category: string) => void;
+    │   │            onSave: (draft: AdminProductDraft) => void;
+    │   │            onCancel: () => void; onNotify: Notify }
+    │   ├── AdminProductList
+    │   │   File: src/features/admin/components/AdminProductList/AdminProductList.tsx
+    │   │   Props: { products: AdminProduct[]; onEdit: (product: AdminProduct) => void;
+    │   │            onRequestDelete: (product: AdminProduct) => void }
+    │   └── CategoryManager
+    │       File: src/features/admin/components/CategoryManager/CategoryManager.tsx
+    │       Props: { products: AdminProduct[]; categories: string[];
+    │                catalogStatus: 'loading' | 'error' | 'success';
+    │                onDelete: (category: string, replacement: string) => void; onNotify: Notify }
+    │       Confirmation form mounts only while pendingCategory is selected.
+    ├── StoreFooter — src/app/components/StoreFooter/StoreFooter.tsx
+    │   Props: none
+    └── ToastRegion [always mounted across pages]
+        File: src/shared/components/ToastRegion/ToastRegion.tsx
+        Props: { toasts: ToastMessage[]; announcement: ToastMessage | null;
+                 onDismiss: (id: number) => void }
+        └── Toast [one per queued message; key: toast.id; absent when queue is empty]
+            File: src/shared/components/Toast/Toast.tsx
+            Props: { toast: ToastMessage; onDismiss: (id: number) => void }
+            Action link renders only when toast.action is provided.
 ```
 
-`src/main.tsx` mounts `App` inside `BrowserRouter` and React's `StrictMode`. HTML elements, fragments, hooks, and library internals are omitted. There are 26 application components including product details, comments, and shared notification UI.
+`src/main.tsx` mounts `App` inside `BrowserRouter` and React's `StrictMode`. HTML elements, fragments, hooks, and library internals are omitted. There are 30 application components including cart ownership, route composition, route recovery, product details, comments, and shared notification UI.
 
 `App` declares the `/`, `/products/:productId`, `/cart`, `/login`, and `/admin` routes with React Router. An unmatched route displays a page-not-found message. `Link` and `NavLink` preserve application state during navigation; `Navigate` handles the demo session redirects. The skip link focuses the current main content without changing pages. `getStorePageTitle(pathname)` names the active route for the document title.
+
+`CollectionPage`, `ProductDetailsPage`, `Cart`, `Login`, and `AdminDashboard` use module-scope `lazyPage` declarations backed by `React.lazy`. Each page and its styles load when that page first renders; React caches the loaded module for later visits. A pathname-keyed `Suspense` boundary displays **Loading page…** while code downloads. The helper catches failed imports and displays `PageLoadError` with an explicit **Reload page** action. `CartProvider`, the header, footer, notifications, session state, and shared data hooks remain mounted outside this boundary. Redirected or unopened pages do not trigger their lazy imports.
 
 `Product` is `{ id: number; title: string; category: string; priceCents: number; inStock: boolean }`. Admin's independent `AdminProduct` and cart's independent `CartProduct` have the same shape. `AdminProductDraft` omits `id`; `CartItem` extends `CartProduct` with `quantity: number`. `CatalogState` is `{ status: 'loading' } | { status: 'error'; message: string } | { status: 'success'; products: Product[] }`.
 
@@ -272,7 +290,7 @@ Props: none
 | `App`, `useProducts(needsCatalog)`                          | API `state` and retry `attempt`                                    | Requests the collection on collection/admin routes; validates results, supports retry, and cancels requests when disabled or unmounted             |
 | `App`, `useDemoCatalog(baseProducts, notify)`               | Local `catalog` changes and storage error                          | Restores saved edits; actions persist and notify their actual outcomes; derives merged products                                                    |
 | `App`, `useDemoAuth()`                                      | `signedIn`                                                         | Restores tab-scoped demo session; login checks credentials; logout clears the session                                                              |
-| `App`, `useCart(notify)`                                    | Cart items and persistence feedback                                | Restores snapshots; actions persist and notify changes, failures and limits; derives count and total                                               |
+| `CartProvider`, `useCartState(notify)`                      | One cart snapshot with items and persistence feedback              | Restores snapshots; stable actions persist and notify changes, failures and limits; derives count and total; useCart() shares the value            |
 | `App`, `useToasts()`                                        | Reducer queue, announcement event, and next ID ref                 | Owns up to three deduplicated toasts plus independent announcement state; stable notify/dismiss callbacks                                          |
 | `ProductCatalog`, `useProductFilters(products)`             | One filters object                                                 | Defaults to empty query/category, stock-only false, name sort; reset restores defaults                                                             |
 | `ProductDetails`, `useProduct(productId)`                   | Selected product result and retry `attempt`                        | Requests the ID endpoint, distinguishes 404 from retryable errors, and aborts stale/unmounted requests; remounts when the product pathname changes |
@@ -283,9 +301,9 @@ Props: none
 | `CategoryManager`                                           | `pendingCategory`, validation `error`                              | Owns deletion confirmation and replacement input; derives affected count; cancellation changes no products                                         |
 | `Toast`                                                     | `isHovered`, `hasFocus`; effect-managed timeout                    | Pauses auto-dismiss during interaction, cleans up stale timers, and keeps errors until dismissed                                                   |
 
-The cart, catalog, and comment hooks use refs only to retain the latest mutation snapshot for successive event-handler calls. They do not read those refs during rendering. Filtered products, categories, counts, prices, and merged catalog values are derived during rendering. All other components are stateless and report actions through props.
+The cart, catalog, and comment hooks use refs only to retain the latest mutation snapshot for successive event-handler calls. They do not read those refs during rendering. Filtered products, categories, counts, prices, and merged catalog values are derived during rendering. `StoreHeader`, `CollectionPage`, `ProductDetailsPage`, and `Cart` read the same cart through `useCart()`; calling the consumer hook never creates another cart. All other components are stateless and report actions through props. Component-specific filters, forms, and comments retain their existing owners.
 
-App passes the stable `notify` callback into cart/catalog hooks and admin controls. Mutation hooks report success only for completed changes; storage failures append the persistence warning to an error toast while preserving the in-memory change. Cart additions at the limit report a notice without claiming another unit was added. ProductCard is stateless and forwards add actions. Validation errors stay inline with form descriptions while ToastRegion owns their live announcement. Retry keeps the existing loading/error UI and announces that the retry started. Filters continue using their result count rather than generating toasts on every change.
+App passes the stable `notify` callback into `CartProvider`, the catalog hook, and admin controls. The cart context value is memoized and its actions retain their identity until notification dependencies change, so unrelated notification updates do not publish a new cart value. React Context fits this small shared cart without an additional store dependency. Mutation hooks report success only for completed changes; storage failures append the persistence warning to an error toast while preserving the in-memory change. Cart additions at the limit report a notice without claiming another unit was added. ProductCard is stateless and forwards add actions. Validation errors stay inline with form descriptions while ToastRegion owns their live announcement. Retry keeps the existing loading/error UI and announces that the retry started. Filters continue using their result count rather than generating toasts on every change.
 
 ToastRegion keeps empty polite/status and assertive/alert announcement containers mounted from startup, updating their keyed content for each new action, including repeated identical messages. Dismissing a notification clears its current announcement without reviving older messages. Visible Toast components have no additional live roles. The visual list is newest first so recent feedback stays visible on short viewports.
 
@@ -309,4 +327,4 @@ For product details, follow a product title, open `/products/1` directly, refres
 
 Check card navigation from the artwork, metadata, title, and price. The cart button must add without navigating; keyboard focus and reduced-motion settings must remain usable. Post a demo comment, refresh, switch products, and return to confirm per-product persistence. Check blank/overlong fields, empty comments, multiline text, corrupt saved data, and unavailable browser storage.
 
-In React DevTools **Components**, expand `App` and compare the active branches and props above. Inspect App's catalog/demo/session/cart/toast hooks, ProductDetails' route and request state, ProductCatalog's filters, admin form/dashboard state, and each Toast's hover/focus flags.
+In React DevTools **Components**, expand `App` and `CartProvider` and compare the active branches and props above. Inspect App's catalog/demo/session/toast hooks, CartProvider's single cart state hook and the consumers' shared context, ProductDetails' route and request state, ProductCatalog's filters, admin form/dashboard state, and each Toast's hover/focus flags.

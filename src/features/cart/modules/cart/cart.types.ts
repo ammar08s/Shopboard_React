@@ -14,3 +14,14 @@ export interface CartSnapshot {
   items: CartItem[];
   error: string | null;
 }
+
+export interface CartState {
+  items: CartItem[];
+  itemCount: number;
+  totalCents: number;
+  storageError: string | null;
+  addItem: (product: CartProduct) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
+  removeItem: (productId: number) => void;
+  clearCart: () => void;
+}

@@ -2,31 +2,21 @@ import type { ReactElement } from 'react';
 import { Link } from 'react-router';
 import { formatCartPrice } from '../../modules/cart/cart.price.ts';
 import type { CartItem } from '../../modules/cart/cart.types.ts';
+import { useCart } from '../../modules/cart/useCart.ts';
 import { CartLine } from '../CartLine/CartLine.tsx';
 import './Cart.css';
 
 interface Props {
-  items: CartItem[];
-  totalCents: number;
-  storageError: string | null;
-  onQuantityChange: (productId: number, quantity: number) => void;
-  onRemove: (productId: number) => void;
-  onClear: () => void;
+  children?: never;
 }
 
-/** Displays the persistent demo cart and its empty state. @param props - Cart state, subtotal, persistence feedback, and mutation callbacks. @returns Accessible cart section. */
-export function Cart({
-  items,
-  totalCents,
-  storageError,
-  onQuantityChange,
-  onRemove,
-  onClear,
-}: Props): ReactElement {
+/** Displays the provider-owned demo cart and its empty state. @param props - No configurable inputs. @returns Accessible cart section. */
+export function Cart(_props: Props): ReactElement {
+  const { items, totalCents, storageError, updateQuantity, removeItem, clearCart } = useCart();
   /** Displays one keyed cart line. @param item - Saved cart line. @returns Cart list item. */
   function renderLine(item: CartItem): ReactElement {
     return (
-      <CartLine key={item.id} item={item} onQuantityChange={onQuantityChange} onRemove={onRemove} />
+      <CartLine key={item.id} item={item} onQuantityChange={updateQuantity} onRemove={removeItem} />
     );
   }
 
@@ -40,7 +30,7 @@ export function Cart({
           </h2>
         </div>
         {items.length > 0 ? (
-          <button type="button" className="cart-clear" onClick={onClear}>
+          <button type="button" className="cart-clear" onClick={clearCart}>
             Clear cart
           </button>
         ) : null}
