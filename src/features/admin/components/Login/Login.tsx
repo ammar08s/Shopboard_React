@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react';
 import type { FormEvent, ReactElement } from 'react';
+import { Link } from 'react-router';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '../../modules/session/admin.session.ts';
 import './Login.css';
 
@@ -75,9 +76,9 @@ export function Login({ onLogin }: Props): ReactElement {
         </dl>
         <p>This is a demo login. Product changes are saved only in this browser.</p>
       </div>
-      <a className="admin-login-back" href="#collection">
+      <Link className="admin-login-back" to="/">
         Back to the collection &rarr;
-      </a>
+      </Link>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
+import { Link } from 'react-router';
 import type { Notify } from '../../../../shared/modules/toasts/toasts.types.ts';
 import {
   getAdminCategories,
@@ -155,7 +156,7 @@ export function AdminDashboard({
             Manage the collection<span>.</span>
           </h1>
         </div>
-        <a href="#collection">View storefront &rarr;</a>
+        <Link to="/">View storefront &rarr;</Link>
       </div>
       <p className="admin-dashboard-note">
         <strong>Demo workspace.</strong> Changes appear in your storefront and are saved only in

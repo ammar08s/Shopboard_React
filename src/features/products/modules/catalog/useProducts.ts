@@ -7,8 +7,11 @@ export type CatalogState =
   | { status: 'error'; message: string }
   | { status: 'success'; products: Product[] };
 
-/** Loads catalog data with unmount cancellation. No inputs. @returns Catalog state and a retry action. */
-export function useProducts(): { state: CatalogState; retry: () => void } {
+/** Loads catalog data only where the collection is needed, with cancellation.
+ * @param enabled - Whether the active route needs the collection; defaults to true.
+ * @returns Catalog state and a retry action.
+ */
+export function useProducts(enabled: boolean = true): { state: CatalogState; retry: () => void } {
   const [state, setState] = useState<CatalogState>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
   /** Starts a new request attempt. No inputs. @returns Nothing. */
@@ -16,8 +19,11 @@ export function useProducts(): { state: CatalogState; retry: () => void } {
     setState({ status: 'loading' });
     setAttempt(attempt + 1);
   }
-  /** Synchronizes catalog with the API. No inputs. @returns Request cleanup. */
-  function loadProducts(): () => void {
+  /** Synchronizes the catalog with the API when enabled. No inputs.
+   * @returns Request cleanup, or nothing when the active route does not need the collection.
+   */
+  function loadProducts(): (() => void) | undefined {
+    if (!enabled) return;
     const controller = new AbortController();
     /** Stores valid results. @param products - Loaded catalog. @returns Nothing. */
     function loaded(products: Product[]): void {
@@ -39,6 +45,6 @@ export function useProducts(): { state: CatalogState; retry: () => void } {
     }
     return cleanup;
   }
-  useEffect(loadProducts, [attempt]);
+  useEffect(loadProducts, [attempt, enabled]);
   return { state, retry };
 }

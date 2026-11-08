@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router';
 import App from './app/App.tsx';
 import './shared/styles/global.css';
 import './shared/styles/typography.css';
@@ -9,6 +10,8 @@ if (rootElement === null) throw new Error('The root element is missing.');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 );

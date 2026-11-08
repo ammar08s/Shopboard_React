@@ -1,0 +1,134 @@
+.products-comments {
+  margin-top: 44px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.products-comments-heading,
+.products-comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.products-comments-heading h2 {
+  margin: 0;
+  font:
+    600 24px Manrope,
+    sans-serif;
+}
+
+.products-comments-heading h2 span,
+.products-comments-note,
+.products-comments-empty,
+.products-comments-limit,
+.products-comment-meta time {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.products-comments-badge {
+  border-radius: 20px;
+  background: #e7ecdf;
+  padding: 6px 10px;
+  color: var(--green);
+  font-size: 12px;
+}
+
+.products-comments-note {
+  margin: 14px 0 24px;
+  line-height: 1.6;
+}
+
+.products-comments-list {
+  display: grid;
+  gap: 16px;
+  padding: 0;
+  margin: 0 0 28px;
+  list-style: none;
+}
+
+.products-comment {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--surface);
+}
+
+.products-comment p {
+  margin: 14px 0 0;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.products-comments-form {
+  display: grid;
+  gap: 10px;
+  max-width: 680px;
+  padding-top: 12px;
+}
+
+.products-comments-form h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.products-comments-form label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.products-comments-form input,
+.products-comments-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.products-comments-form textarea {
+  resize: vertical;
+}
+.products-comments-form textarea:focus-visible {
+  outline: 3px solid #729c7c;
+  outline-offset: 4px;
+}
+
+.products-comments-form button {
+  justify-self: start;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  padding: 12px 20px;
+  background: var(--green);
+  color: white;
+}
+
+.products-comments-form button:hover {
+  background: #1d4534;
+}
+
+.products-comments-limit,
+.products-comments-error,
+.products-comments-success {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.products-comments-warning,
+.products-comments-error {
+  color: #8b3b24;
+  font-size: 13px;
+}
+
+.products-comments-success {
+  color: var(--green);
+  font-size: 13px;
+}

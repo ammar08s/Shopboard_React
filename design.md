@@ -1,4 +1,4 @@
-# Initial ShopBoard catalog
+# ShopBoard product requirements
 
 Build a responsive, read-only storefront backed by https://shopboard-api.vercel.app/api/products.
 Users can search names, filter category and stock availability, sort names or prices, and reset filters.
@@ -8,13 +8,31 @@ Use warm neutral CSS, a green accent, a compact header, an editorial introductio
 The API supplies no images or currency code. Use decorative category initials and label prices as USD as an explicit initial display assumption.
 Validate unknown API responses and map snake_case fields into frontend models. Cancel requests on unmount.
 Keep components in separate files with typed Props interfaces, including components without configurable props.
-Use React state, derive filtered results during rendering, and avoid new runtime dependencies.
-The initial catalog is extended with a browser-only admin demo and shopping cart. Checkout and detail pages remain outside scope.
+Use React state and derive filtered results during rendering. Use React Router for client-side routes; add other runtime dependencies only when a requested feature requires them.
+The storefront includes product details, a browser-only admin demo, and a shopping cart. Checkout remains outside scope.
+
+## Product details and routing
+
+- Use React Router with browser-history URLs: `/` for the collection, `/products/:productId` for a product, `/cart`, `/login`, and `/admin`. Unknown routes display a page-not-found message. Redirect signed-out admin visits to login and signed-in login visits to the dashboard.
+- Make the full API-backed product card link to its detail route, while keeping Add to cart independently clickable and keyboard-operable. Show a clear hover and focus treatment, and suppress movement for reduced-motion preferences. Fetch the selected product directly from `GET /api/products/{id}` through the shared API client, without downloading the full collection on a direct detail-page visit.
+- The single-product response contains `id`, `title`, `category_name`, `price_cents`, and `in_stock`. Validate unknown data, map it to the existing Product model, and reject responses with a different ID. The API supplies no product images or descriptions; display the existing decorative category treatment instead of inventing product information.
+- Display the title, category, USD price, stock availability, and product ID. Available products can be added to the existing cart; disable that action for unavailable products. Keep a link back to the collection.
+- Provide loading feedback, a retryable request/validation error, and a distinct not-found state for HTTP 404 or invalid IDs. Accept only canonical positive safe-integer IDs. Cancel requests when the route changes or unmounts so stale results cannot replace the current product.
+- Details show the API record. Browser-only demo products use negative IDs and have no API detail route; their existing card and cart controls remain available.
+- Preserve cart, demo session, and notifications during client-side navigation. Production hosting must serve `index.html` for application routes so direct links and refresh work.
+
+## Demo product comments
+
+- Show a comment section on each successfully loaded product page. Include an empty state, newest-first comments, display names, timestamps, and a form with labelled display-name and comment fields.
+- Comments are a browser-only demo. Persist each product's comments in its own versioned localStorage entry; do not send comments to the API or imply that other users can see them.
+- Trim submitted fields, require both values, limit display names to 60 characters and comment text to 1,000 characters, and render user text as plain text with its line breaks preserved.
+- Reset the form after a successful submission and announce every post, including repeated submissions. Validate saved records and recover from corrupt data; if storage is blocked or full, keep new comments until the user leaves or refreshes the page and explain the persistence limitation.
+- Mount the comment section with a product-ID key so comments and form feedback cannot carry over to another product.
 
 ## Demo administration and cart
 
-- Keep React, TypeScript, Vite, plain CSS, and the existing feature boundaries. Coordinate features through `App` and explicit props, without another runtime dependency.
-- Navigation uses hash links for the collection, cart, and admin login/dashboard so refresh and browser history work on static hosting.
+- Keep React, TypeScript, Vite, React Router, plain CSS, and the existing feature boundaries. Coordinate features through `App` and explicit props.
+- Use router links for the collection, cart, login, dashboard, and notification actions so navigation preserves application state and browser history.
 - Show demo credentials on the login page: `admin@shopboard.demo` / `Admin123!`. Reject invalid credentials; keep the demo session in sessionStorage and provide logout. This is a simulated UI gate, not real authentication or authorization.
 - Admins can read, create, edit, and delete products. Validate trimmed titles/categories and nonnegative USD prices with at most two decimal places; allow stock changes and confirm deletion. Show actionable errors and success feedback.
 - The product form offers a dropdown of existing categories, derived from the current collection. "Create new category" opens a required name field and "Use existing category" cancels it. New categories are saved with the product and become available in subsequent dropdowns and storefront filters. Reuse existing category spelling when a newly entered name differs only by capitalization or surrounding spaces. Category names remain 1–60 trimmed characters; categories without products are not stored separately.
@@ -25,15 +43,6 @@ The initial catalog is extended with a browser-only admin demo and shopping cart
 - Recover from corrupt/unavailable browser storage without crashing; tell users when changes cannot survive refresh. No cross-device persistence is promised.
 - Use shared Toast and ToastRegion components for action feedback: cart add/quantity/remove/clear, quantity limits, demo login/logout, product/category mutations and form errors, cancellations, and collection retries. Keep persistent inline validation and request/storage feedback visible, but let the toast provide the action announcement. Display success/error/info variants, an accessible dismiss button, and an optional View cart link. Keep at most three notifications, replace repeated identical messages, dismiss success/info after six seconds, restart their timers after hover/focus ends, and keep errors until dismissed or displaced by newer notifications. Keep the queue mounted across navigation, respect reduced motion, wrap long content on mobile, and never steal keyboard focus. Use the existing React/CSS stack without a library.
 - Keep polite/status and assertive/alert announcement regions mounted before the first notification arrives. Announce each newly published action, including identical repeated actions with distinct IDs; dismissal must not re-announce older messages. Render visible messages newest first to keep recent feedback in view on short screens.
-
-### Extension approach
-
-Use a local changes layer over API data, keeping the shared API client read-only. This preserves API loading/error behavior and keeps demo changes visible across both admin and storefront. Writing to undocumented endpoints would not provide reliable persistence; replacing the live catalog with static mocks would discard existing browsing behavior. The implementer's choice is a local changes layer with a tab-scoped demo session and a separate persistent cart.
-
-## Approaches
-
-Selected: real API catalog first. This establishes a reliable data boundary and functioning browsing experience.
-Deferred: catalog with local admin mutations, which would suggest persistence the API does not provide.
 
 ## Validation
 

@@ -16,7 +16,7 @@ export function parseProducts(payload: unknown): Product[] {
 }
 
 /** Validates one product. @param value - Unknown item. @returns Frontend product. @throws Error for invalid fields. */
-function parseProduct(value: unknown): Product {
+export function parseProduct(value: unknown): Product {
   if (
     typeof value !== 'object' ||
     value === null ||

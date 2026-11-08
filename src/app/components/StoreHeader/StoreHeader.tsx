@@ -1,38 +1,34 @@
 import type { ReactElement } from 'react';
-import type { StorePage } from '../../modules/navigation/storePage.ts';
+import { Link, NavLink } from 'react-router';
 
 import './StoreHeader.css';
 
 interface Props {
-  page: StorePage;
   cartCount: number;
   signedIn: boolean;
   onLogout: () => void;
 }
 
-/** Displays store identity and navigation with cart and demo session controls. @param props - Current page, cart quantity, demo session, and logout action. @returns Store header. */
-export function StoreHeader({ page, cartCount, signedIn, onLogout }: Props): ReactElement {
+/** Displays store identity and router navigation with cart and demo session controls. @param props - Cart quantity, demo session, and logout action. @returns Store header. */
+export function StoreHeader({ cartCount, signedIn, onLogout }: Props): ReactElement {
   return (
     <header className="store-header">
-      <a className="store-brand" href="#collection" aria-label="ShopBoard home">
+      <Link className="store-brand" to="/" aria-label="ShopBoard home">
         <span className="store-logo" aria-hidden="true">
           s.
         </span>
         shopboard<span className="store-brand-dot">®</span>
-      </a>
+      </Link>
       <nav aria-label="Main navigation">
-        <a href="#collection" aria-current={page === 'collection' ? 'page' : undefined}>
+        <NavLink to="/" end>
           The collection <span aria-hidden="true">↗</span>
-        </a>
-        <a href="#cart" aria-current={page === 'cart' ? 'page' : undefined}>
+        </NavLink>
+        <NavLink to="/cart">
           Cart <span className="store-cart-count">{cartCount}</span>
-        </a>
-        <a
-          href={signedIn ? '#admin' : '#login'}
-          aria-current={page === 'admin' ? 'page' : undefined}
-        >
+        </NavLink>
+        <NavLink to={signedIn ? '/admin' : '/login'}>
           {signedIn ? 'Dashboard' : 'Admin login'}
-        </a>
+        </NavLink>
         {signedIn ? (
           <button type="button" onClick={onLogout}>
             Sign out

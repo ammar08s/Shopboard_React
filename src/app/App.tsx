@@ -1,18 +1,20 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { AdminDashboard } from '../features/admin/components/AdminDashboard/AdminDashboard.tsx';
 import { Login } from '../features/admin/components/Login/Login.tsx';
 import { useDemoAuth } from '../features/admin/modules/session/useDemoAuth.ts';
 import { Cart } from '../features/cart/components/Cart/Cart.tsx';
 import { useCart } from '../features/cart/modules/cart/useCart.ts';
 import { Products } from '../features/products/components/Products/Products.tsx';
+import { ProductDetails } from '../features/products/components/details/ProductDetails/ProductDetails.tsx';
 import type { Product } from '../features/products/modules/catalog/products.types.ts';
 import { useProducts } from '../features/products/modules/catalog/useProducts.ts';
 import { useDemoCatalog } from '../features/products/modules/demo/useDemoCatalog.ts';
 import { StoreFooter } from './components/StoreFooter/StoreFooter.tsx';
 import { StoreHeader } from './components/StoreHeader/StoreHeader.tsx';
 import { StoreIntro } from './components/StoreIntro/StoreIntro.tsx';
-import { getStorePage, subscribeToStorePage } from './modules/navigation/storePage.ts';
+import { getStorePageTitle, needsProductCatalog } from './modules/navigation/storePage.ts';
 import { ToastRegion } from '../shared/components/ToastRegion/ToastRegion.tsx';
 import { useToasts } from '../shared/modules/toasts/useToasts.ts';
 import './App.css';
@@ -29,9 +31,12 @@ const emptyProducts: Product[] = [];
  * @returns Store application.
  */
 function App(_props: Props): ReactElement {
-  const page = useSyncExternalStore(subscribeToStorePage, getStorePage);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pageTitle = getStorePageTitle(location.pathname);
   const mainRef = useRef<HTMLElement>(null);
-  const { state, retry } = useProducts();
+  const needsCatalog = needsProductCatalog(location.pathname);
+  const { state, retry } = useProducts(needsCatalog);
   const { toasts, announcement, notify, dismiss } = useToasts();
   const demo = useDemoCatalog(state.status === 'success' ? state.products : emptyProducts, notify);
   const auth = useDemoAuth();
@@ -41,15 +46,10 @@ function App(_props: Props): ReactElement {
    * @returns Nothing; synchronizes the browser title and keyboard focus after navigation.
    */
   function announcePage(): void {
-    const titles = {
-      collection: 'Everyday essentials',
-      cart: 'Your cart',
-      admin: 'Demo administration',
-    };
-    document.title = `ShopBoard — ${titles[page]}`;
+    document.title = `ShopBoard — ${pageTitle}`;
     mainRef.current?.focus();
   }
-  useEffect(announcePage, [page, auth.signedIn]);
+  useEffect(announcePage, [pageTitle, location.pathname, auth.signedIn]);
 
   /** Focuses the current page content without changing its navigation fragment.
    * @param event - Skip-link activation.
@@ -68,7 +68,7 @@ function App(_props: Props): ReactElement {
   function login(email: string, password: string): boolean {
     const accepted = auth.login(email, password);
     if (accepted) {
-      window.location.hash = 'admin';
+      void navigate('/admin');
       notify({ variant: 'success', message: 'Signed in to the demo dashboard.' });
     } else
       notify({
@@ -83,7 +83,7 @@ function App(_props: Props): ReactElement {
    */
   function logout(): void {
     auth.logout();
-    window.location.hash = 'login';
+    void navigate('/login');
     notify({ variant: 'info', message: 'Signed out of the demo.' });
   }
 
@@ -95,55 +95,6 @@ function App(_props: Props): ReactElement {
     retry();
   }
 
-  let content: ReactElement;
-  if (page === 'cart') {
-    content = (
-      <Cart
-        items={cart.items}
-        totalCents={cart.totalCents}
-        storageError={cart.storageError}
-        onQuantityChange={cart.updateQuantity}
-        onRemove={cart.removeItem}
-        onClear={cart.clearCart}
-      />
-    );
-  } else if (page === 'admin') {
-    content = auth.signedIn ? (
-      <AdminDashboard
-        products={demo.products}
-        catalogStatus={state.status}
-        catalogError={state.status === 'error' ? state.message : null}
-        storageError={demo.storageError}
-        onRetry={retryCollection}
-        onCreate={demo.createProduct}
-        onUpdate={demo.updateProduct}
-        onDelete={demo.deleteProduct}
-        onDeleteCategory={demo.deleteCategory}
-        onNotify={notify}
-      />
-    ) : (
-      <Login onLogin={login} />
-    );
-  } else {
-    content = (
-      <>
-        <StoreIntro />
-        <div id="collection" className="store-collection-heading">
-          <h2>
-            The collection<span>.</span>
-          </h2>
-          <span>YOUR NEXT GOOD FIND STARTS HERE</span>
-        </div>
-        <Products
-          state={state}
-          products={demo.products}
-          onRetry={retryCollection}
-          onAddToCart={cart.addItem}
-        />
-      </>
-    );
-  }
-
   return (
     <>
       <a className="store-skip" href="#main-content" onClick={skipToContent}>
@@ -151,14 +102,82 @@ function App(_props: Props): ReactElement {
       </a>
       <div className="store-announcement">Good things. Everyday essentials. All in one place.</div>
       <div className="store-shell">
-        <StoreHeader
-          page={page}
-          cartCount={cart.itemCount}
-          signedIn={auth.signedIn}
-          onLogout={logout}
-        />
+        <StoreHeader cartCount={cart.itemCount} signedIn={auth.signedIn} onLogout={logout} />
         <main id="main-content" ref={mainRef} tabIndex={-1}>
-          {content}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <StoreIntro />
+                  <div id="collection" className="store-collection-heading">
+                    <h2>
+                      The collection<span>.</span>
+                    </h2>
+                    <span>YOUR NEXT GOOD FIND STARTS HERE</span>
+                  </div>
+                  <Products
+                    state={state}
+                    products={demo.products}
+                    onRetry={retryCollection}
+                    onAddToCart={cart.addItem}
+                  />
+                </>
+              }
+            />
+            <Route
+              path="/products/:productId"
+              element={<ProductDetails key={location.pathname} onAddToCart={cart.addItem} />}
+            />
+            <Route
+              path="/cart"
+              element={
+                <Cart
+                  items={cart.items}
+                  totalCents={cart.totalCents}
+                  storageError={cart.storageError}
+                  onQuantityChange={cart.updateQuantity}
+                  onRemove={cart.removeItem}
+                  onClear={cart.clearCart}
+                />
+              }
+            />
+            <Route
+              path="/login"
+              element={auth.signedIn ? <Navigate to="/admin" replace /> : <Login onLogin={login} />}
+            />
+            <Route
+              path="/admin"
+              element={
+                auth.signedIn ? (
+                  <AdminDashboard
+                    products={demo.products}
+                    catalogStatus={state.status}
+                    catalogError={state.status === 'error' ? state.message : null}
+                    storageError={demo.storageError}
+                    onRetry={retryCollection}
+                    onCreate={demo.createProduct}
+                    onUpdate={demo.updateProduct}
+                    onDelete={demo.deleteProduct}
+                    onDeleteCategory={demo.deleteCategory}
+                    onNotify={notify}
+                  />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <section className="store-not-found">
+                  <h1>Page not found</h1>
+                  <p>This link doesn’t lead to a ShopBoard page.</p>
+                  <Link to="/">Back to the collection</Link>
+                </section>
+              }
+            />
+          </Routes>
         </main>
         <StoreFooter />
       </div>

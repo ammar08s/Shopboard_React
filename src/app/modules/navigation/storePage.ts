@@ -1,25 +1,22 @@
-export type StorePage = 'collection' | 'cart' | 'admin';
+import { matchPath } from 'react-router';
 
-/** Reads the current static-host-friendly page from the URL fragment. No inputs.
- * @returns The collection, cart, or admin page; unknown fragments fall back to the collection.
+/** Names the current route for the application document title.
+ * @param pathname - React Router's current URL pathname.
+ * @returns A descriptive page title, including a fallback for unmatched routes.
  */
-export function getStorePage(): StorePage {
-  if (window.location.hash === '#cart') return 'cart';
-  if (window.location.hash === '#admin' || window.location.hash === '#login') return 'admin';
-  return 'collection';
+export function getStorePageTitle(pathname: string): string {
+  if (matchPath('/', pathname) !== null) return 'Everyday essentials';
+  if (matchPath('/cart', pathname) !== null) return 'Your cart';
+  if (matchPath('/login', pathname) !== null) return 'Admin login';
+  if (matchPath('/admin', pathname) !== null) return 'Demo administration';
+  if (matchPath('/products/:productId', pathname) !== null) return 'Product details';
+  return 'Page not found';
 }
 
-/** Subscribes React to browser navigation, including back/forward history.
- * @param onChange - React callback to check the page snapshot.
- * @returns Cleanup that removes the navigation listener.
+/** Identifies routes that consume the collection using React Router's own matching rules.
+ * @param pathname - Current browser pathname, including its original case and trailing slashes.
+ * @returns Whether the collection or admin route needs catalog data.
  */
-export function subscribeToStorePage(onChange: () => void): () => void {
-  window.addEventListener('hashchange', onChange);
-  /** Removes the navigation listener. No inputs.
-   * @returns Nothing; detaches the browser event listener.
-   */
-  function unsubscribe(): void {
-    window.removeEventListener('hashchange', onChange);
-  }
-  return unsubscribe;
+export function needsProductCatalog(pathname: string): boolean {
+  return matchPath('/', pathname) !== null || matchPath('/admin', pathname) !== null;
 }

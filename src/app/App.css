@@ -45,6 +45,14 @@
 .store-skip:focus {
   top: 0;
 }
+.store-not-found {
+  padding: 48px 0;
+  min-height: 300px;
+}
+.store-not-found a {
+  color: var(--green);
+  text-underline-offset: 4px;
+}
 @media (min-width: 600px) {
   .store-shell {
     padding: 0 28px;

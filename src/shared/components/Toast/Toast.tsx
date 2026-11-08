@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FocusEvent, ReactElement } from 'react';
+import { Link } from 'react-router';
 import { startToastTimer } from '../../modules/toasts/toasts.timer.ts';
 import type { ToastMessage, ToastVariant } from '../../modules/toasts/toasts.types.ts';
 import './Toast.css';
@@ -80,9 +81,9 @@ export function Toast({ toast, onDismiss }: Props): ReactElement {
         <p id={messageId}>{toast.message}</p>
       </div>
       {toast.action !== undefined ? (
-        <a className="ui-toast-action" href={toast.action.href}>
+        <Link className="ui-toast-action" to={toast.action.href}>
           {toast.action.label}
-        </a>
+        </Link>
       ) : null}
       <button
         className="ui-toast-dismiss"

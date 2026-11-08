@@ -143,6 +143,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 - Apply `code-simplifier` to touched code during implementation and final review, preserving behavior and the required function documentation.
 
 - Use function components and follow the Rules of Hooks.
+- Use React Router for route composition, route parameters, and internal navigation. Keep application routes in `src/app/` and route-specific UI and data access in the owning feature.
 - Keep rendering pure. Perform user-triggered work in event handlers and use effects for synchronization with external systems.
 - Start with React's built-in state tools. Add a state library only when a concrete need justifies it.
 - Keep state close to where it is used. Lift it only when consumers need to share it.
@@ -180,6 +181,7 @@ function searchProducts(products: Product[], query: string): Product[] {
 - Inspect existing code and conventions before making changes.
 - Prefer existing tools and native platform capabilities. Justify new dependencies with a concrete need and avoid adding libraries speculatively.
 - Keep changes focused on the requested task. Preserve unrelated user changes.
+- Keep only requested application code, tests, configuration, skills, and durable project documentation in this repository. Do not add AI chat transcripts, implementation plans, agent progress/review logs, scratch files, or temporary verification assets; keep working artifacts outside the repository. Product requirements belong in `design.md`, setup and usage in `README.md`, and engineering rules here.
 - Keep naming consistent: PascalCase for components and component files; camelCase for functions and variables; `use` prefixes for hooks; descriptive feature filenames such as `products.api.ts`.
 - Use the existing Oxlint and Prettier configurations.
 - Run `npm run format` to apply project formatting and `npm run format:check` to check it without changing files. Keep LF text line endings as defined in `.gitattributes`.

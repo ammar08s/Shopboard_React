@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { Link } from 'react-router';
 import type { Product } from '../../../modules/catalog/products.types.ts';
 import { formatPrice } from '../../../modules/pricing/products.price.ts';
 
@@ -18,7 +19,7 @@ export function ProductCard({ product, onAddToCart }: Props): ReactElement {
   }
 
   return (
-    <article className="products-card">
+    <article className={product.id > 0 ? 'products-card products-card-linked' : 'products-card'}>
       <div
         className={`products-art products-art-${product.category.toLowerCase()}`}
         aria-hidden="true"
@@ -36,7 +37,15 @@ export function ProductCard({ product, onAddToCart }: Props): ReactElement {
             {product.inStock ? 'In stock' : 'Out of stock'}
           </span>
         </div>
-        <h3>{product.title}</h3>
+        <h3>
+          {product.id > 0 ? (
+            <Link className="products-card-link" to={`/products/${product.id}`}>
+              {product.title}
+            </Link>
+          ) : (
+            product.title
+          )}
+        </h3>
         <p className="products-price">
           {formatPrice(product.priceCents)} <span>USD</span>
         </p>

@@ -1,0 +1,148 @@
+.products-detail {
+  padding: 28px 0 48px;
+  min-height: 420px;
+  overflow-wrap: anywhere;
+}
+
+.products-detail-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: var(--green);
+  font-size: 13px;
+  text-underline-offset: 4px;
+}
+
+.products-detail-layout,
+.products-detail-skeleton {
+  display: grid;
+  gap: 28px;
+}
+
+.products-detail-art {
+  position: relative;
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  border-radius: var(--radius);
+  background: #e8e4d9;
+  color: #837860;
+}
+
+.products-detail-art strong {
+  font:
+    500 130px Georgia,
+    serif;
+}
+
+.products-detail-art > span,
+.products-detail-art small {
+  position: absolute;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.products-detail-art > span {
+  top: 24px;
+  left: 24px;
+}
+
+.products-detail-art small {
+  right: 24px;
+  bottom: 24px;
+}
+
+.products-detail-category {
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+}
+
+.products-detail h1 {
+  font:
+    600 clamp(28px, 5vw, 42px) Manrope,
+    sans-serif;
+  letter-spacing: -1px;
+  line-height: 1.2;
+  margin-bottom: 24px;
+}
+
+.products-detail-price {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.products-detail-price span,
+.products-detail-message p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.products-detail-facts {
+  margin: 28px 0;
+  border-top: 1px solid var(--line);
+}
+
+.products-detail-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.products-detail-facts dt {
+  color: var(--muted);
+}
+
+.products-detail-facts dd {
+  margin: 0;
+  text-align: right;
+}
+
+.products-detail-button {
+  padding: 14px 24px;
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  background: var(--green);
+  color: white;
+}
+
+.products-detail-button:hover:enabled {
+  background: #1d4534;
+}
+
+.products-detail-button:disabled {
+  border-color: var(--line);
+  background: var(--line);
+  color: var(--muted);
+  cursor: default;
+}
+
+.products-detail-skeleton > div {
+  min-height: 260px;
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+@media (min-width: 760px) {
+  .products-detail {
+    padding: 36px 0 64px;
+  }
+
+  .products-detail-layout,
+  .products-detail-skeleton {
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .products-detail-art,
+  .products-detail-skeleton > div {
+    min-height: 380px;
+  }
+}

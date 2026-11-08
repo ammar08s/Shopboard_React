@@ -87,14 +87,14 @@ export function useCart(notify: Notify): CartActions {
       notify({
         variant: 'info',
         message: `Your cart already has the maximum of ${MAX_CART_QUANTITY} units of ${product.title}.`,
-        action: { label: 'View cart', href: '#cart' },
+        action: { label: 'View cart', href: '/cart' },
       });
       return;
     }
     commitCart(addCartItem(latestItems.current, product), {
       variant: 'success',
       message: `${product.title} added to your cart.`,
-      action: { label: 'View cart', href: '#cart' },
+      action: { label: 'View cart', href: '/cart' },
     });
   }
 

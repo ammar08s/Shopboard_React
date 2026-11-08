@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { Link } from 'react-router';
 import { formatCartPrice } from '../../modules/cart/cart.price.ts';
 import type { CartItem } from '../../modules/cart/cart.types.ts';
 import { CartLine } from '../CartLine/CartLine.tsx';
@@ -49,9 +50,9 @@ export function Cart({
         <div className="cart-empty">
           <h3>A little room for something good.</h3>
           <p>Your cart is empty. Find an everyday essential in the collection.</p>
-          <a href="#collection">
+          <Link to="/">
             Explore the collection <span aria-hidden="true">↗</span>
-          </a>
+          </Link>
         </div>
       ) : (
         <>

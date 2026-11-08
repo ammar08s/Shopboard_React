@@ -31,7 +31,7 @@ function replacesAndDismisses(): void {
     id: 3,
     message: 'Added',
     variant: 'success',
-    action: { label: 'View cart', href: '#cart' },
+    action: { label: 'View cart', href: '/cart' },
   };
   const next = toastReducer([old, error], { type: 'show', toast: repeated });
   assert.deepEqual(next, [error, repeated]);
